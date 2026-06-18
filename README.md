@@ -1,117 +1,119 @@
 # 🐾 Pet Voice Synthesizer UI
 
-> Dale voz a tu mascota dibujada. Un juguete creativo donde el arte se convierte en sonido, emoción y personalidad.
+> Draw your pet. Record its real sound. Play with it.
 
-Diseño original en Figma: [Pet Voice Synthesizer UI](https://www.figma.com/design/QAWzxncfn3KVK3o3wkuNBp/Pet-Voice-Synthesizer-UI)
+Original Figma design: [Pet Voice Synthesizer UI](https://www.figma.com/design/QAWzxncfn3KVK3o3wkuNBp/Pet-Voice-Synthesizer-UI)
 
 ---
 
-## 🚀 Cómo correr el proyecto
+## 🚀 Getting started
 
 ```bash
-npm i          # instalar dependencias
-npm run dev    # servidor de desarrollo
+npm i          # install dependencies
+npm run dev    # start dev server
 ```
 
 ---
 
 ## ✨ Features
 
-### 🔐 Autenticación real con Supabase
-Login y registro con email + contraseña usando **Supabase Auth**. Las cuentas son reales y persistentes. Al registrarte puedes añadir un nombre de usuario que aparece en la app. Los dibujos y mascotas guardadas se vinculan a tu cuenta en la base de datos.
+### 🎨 Draw Mode — Draw your pet
+Free-drawing canvas with color picker, brush size, and eraser. Visual style inspired by **Tomodachi Life** (Nintendo DS): bold colors, thick black outlines, `Chewy` typography. Your drawing is the foundation of everything that comes next.
 
-### 🎨 Draw Mode — Dibuja tu mascota
-Canvas de dibujo libre con herramientas de color, tamaño de pincel y borrador. Estilo visual inspirado en **Tomodachi Life** (Nintendo DS): colores vivos, bordes negros gruesos, tipografía `Chewy`. El dibujo es la base de todo lo que viene después.
+### 🔊 Sound Profile — Your drawing becomes a sound blueprint
+The drawing is analyzed pixel by pixel to extract a unique **Sound Profile**:
 
-### 🎵 Play Mode — Tu dibujo genera una melodía
-El dibujo se analiza pixel a pixel para extraer:
-- **Tono dominante (hue)** → nota raíz de la melodía
-- **Brillo promedio** → escala musical (mayor, menor, pentatónica, blues, dórica)
-- **Cobertura de tinta** → duración y volumen de las notas
-- **Posición vertical del trazo** → altura de cada nota en la escala
-
-Resultado: cada dibujo produce una melodía única e irrepetible. Puedes elegir entre 6 instrumentos (Piano, Guitarra, Marimba, Flauta, Campanas, Synth), ajustar el tempo y activar loop.
-
-### 🔊 Voice Mode — Tu mascota habla
-Tres capas de audio combinadas:
-
-**1. Mood Detection desde el dibujo**
-El análisis del dibujo detecta automáticamente el estado emocional de la mascota:
-
-| Mood | Señales del dibujo |
+| Drawing signal | What it controls |
 |---|---|
-| ⚡ Energético | Frecuencia alta, volumen alto, waveform suave |
-| 😊 Feliz | Tonos altos, brillo, poca aspereza |
-| 🌊 Tranquilo | Duración larga, volumen bajo, waveform suave |
-| 💤 Somnoliento | Muy larga duración, volumen muy bajo |
-| 🎉 Juguetón | Duración corta, energía media |
-| 🔮 Curioso | Vibrato alto, frecuencia media |
-| 🌧️ Melancólico | Volumen bajo, waveform áspero |
-| 🔥 Enojado | Waveform duro, volumen alto, duración corta |
+| **Dominant hue** | Root note of the melody |
+| **Average brightness** | Musical scale (major, minor, pentatonic, blues, dorian) |
+| **Ink coverage** | Note duration and volume |
+| **Vertical stroke position** | Pitch height within the scale |
 
-Cada mood genera una **frase automática personalizada** por animal (192 frases únicas: 8 moods × 8 animales × 3 variantes). La frase aparece lista para escuchar o editar.
+This profile is shown to the user — you can *see* why your pet sounds the way it does. Each drawing produces a melody that only it could generate.
 
-**2. Sonidos reales de animales (Web Audio API)**
-Cada animal tiene su propio sonido sintetizado sin muestras externas:
-- 🐱 Gato → oscilador sine 600→900→500 Hz (miau)
-- 🐶 Perro → sawtooth 200→120 Hz + filtro lowpass (woof)
-- 🐦 Pájaro → 5 chirps rápidos en 2400–3200 Hz
-- 🐸 Rana → square wave con bandpass filter (croc)
-- 🐇 Conejo / 🐹 Hámster → sine agudo 1800–2400 Hz (squeak)
-- 🐄 Vaca → sine lento + vibrato (muuu)
-- 🦁 León → ruido filtrado tipo rugido (roaar)
+### 🎵 Play Mode — Your drawing plays a melody
+The Sound Profile drives a full melody you can explore:
+- Choose from 6 instruments: Piano, Guitar, Marimba, Flute, Bells, Synth
+- Adjust tempo and activate loop
+- See the detected scale by name (e.g. *"D minor pentatonic"*)
 
-**3. Voz TTS con personalidad**
-Síntesis de voz del browser con pitch y velocidad ajustados por animal. Suena primero el sonido del animal y luego la voz habla el texto. Incluye micrófono: habla tú y la mascota lo repite con su voz.
+### 🎙️ Voice Mode — Record your real pet, remix it
+This is where the magic gets personal. Instead of synthetic animal sounds, **you record your actual cat, dog, or any pet** making a noise — a meow, a bark, a chirp — and then:
 
-### 💾 Guardar mascota
-Guarda tu mascota con nombre y tipo de animal en **Supabase**. El dibujo se sube a **Supabase Storage** y la melodía se guarda como JSON. Todo accesible desde el perfil.
+1. **Record** your pet's sound live (microphone)
+2. **Layer it** over the melody generated from your drawing
+3. **Play with the instruments** from your Sound Profile — your pet's real voice becomes the lead
+4. **Loop and remix** — pitch shift, tempo, reverb built from your drawing's data
+
+Your pet's actual voice + your drawing's musical identity = something completely unique.
+
+### 😄 Mood Detection — Your drawing has feelings
+The Sound Profile also detects your pet's emotional state from the drawing:
+
+| Mood | Drawing signals |
+|---|---|
+| ⚡ Energetic | High frequency, high volume, smooth waveform |
+| 😊 Happy | High pitch, brightness, low roughness |
+| 🌊 Calm | Long duration, low volume, smooth waveform |
+| 💤 Sleepy | Very long duration, very low volume |
+| 🎉 Playful | Short duration, medium energy |
+| 🔮 Curious | High vibrato, medium frequency |
+| 🌧️ Melancholic | Low volume, rough waveform |
+| 🔥 Angry | Hard waveform, high volume, short duration |
+
+The mood is shown with context — *"Bold colors and dense strokes — this pet has things to say."* — so users understand exactly how the image became the emotion.
+
+### 💾 Save your pet
+Save your pet with a name and animal type to **Supabase**. The drawing is uploaded to **Supabase Storage** and the Sound Profile is saved as JSON. Everything accessible from your profile.
 
 ### 🐾 Pet Profile
-Vista de tu mascota guardada con su nombre, dibujo, tipo de animal y opción de reproducir su melodía de nuevo.
+View your saved pet: name, drawing, animal type, Sound Profile, and replay its melody anytime.
 
 ---
 
-## 🗺️ Flujo de la app
+## 🗺️ App flow
 
 ```
-Login 🔐 → Dibuja 🎨 → Escucha la melodía 🎵 → Voz del animal 🔊 → Guarda 💾
+Draw 🎨 → Sound Profile revealed 🔊 → Melody plays 🎵 → Record your real pet 🎙️ → Remix → Save 💾
 ```
 
 ---
 
-## 🛠️ Stack técnico
+## 🛠️ Tech stack
 
-| Tecnología | Uso |
+| Technology | Purpose |
 |---|---|
-| React + TypeScript | UI y lógica |
-| Vite | Bundler y dev server |
-| Web Audio API | Síntesis de melodías y sonidos animales |
-| Web Speech API | TTS (texto a voz) y reconocimiento de voz |
-| Supabase Auth | Login / registro de usuarios |
-| Supabase Database | Guardado de mascotas |
-| Supabase Storage | Subida de dibujos |
-| CSS-in-JS inline | Estilos al estilo Tomodachi Life |
+| React + TypeScript | UI and logic |
+| Vite | Bundler and dev server |
+| Web Audio API | Melody synthesis + live audio recording + remixing |
+| MediaRecorder API | Recording the real pet's voice |
+| Supabase Auth | User login / registration |
+| Supabase Database | Pet data storage |
+| Supabase Storage | Drawing uploads |
+| CSS-in-JS inline | Tomodachi Life–inspired visual style |
 
 ---
 
-## 📁 Estructura relevante
+## 📁 Relevant structure
 
 ```
 src/
 ├── app/
-│   ├── App.tsx                  # Navegación principal + auth guard
+│   ├── App.tsx                  # Main navigation + auth guard
 │   └── components/
-│       ├── DrawMode.tsx          # Canvas de dibujo
-│       ├── PlayMode.tsx          # Reproductor de melodía
-│       ├── VoiceMode.tsx         # Voz + mood detection
-│       ├── PetProfile.tsx        # Perfil de mascota
-│       ├── SavePetModal.tsx      # Modal para guardar
-│       └── LoginScreen.tsx       # Pantalla de login/registro
+│       ├── DrawMode.tsx          # Drawing canvas
+│       ├── SoundProfile.tsx      # Sound profile reveal + mood
+│       ├── PlayMode.tsx          # Melody player
+│       ├── VoiceMode.tsx         # Record real pet + remix
+│       ├── PetProfile.tsx        # Saved pet view
+│       ├── SavePetModal.tsx      # Save modal
+│       └── LoginScreen.tsx       # Login / register screen
 ├── hooks/
-│   ├── usePetVoice.ts           # TTS + micrófono + sonidos animales
-│   └── useDrawSound.ts          # Análisis del dibujo → perfil sonoro
+│   ├── useDrawSound.ts           # Drawing analysis → Sound Profile
+│   ├── usePetRecorder.ts         # MediaRecorder → real pet voice
+│   └── useRemix.ts               # Layering voice + melody
 └── lib/
-    ├── supabase.ts              # Auth + DB + Storage
-    └── moodDetect.ts            # Mood detection → frases automáticas
+    ├── supabase.ts               # Auth + DB + Storage
+    └── moodDetect.ts             # Mood detection from Sound Profile
 ```
