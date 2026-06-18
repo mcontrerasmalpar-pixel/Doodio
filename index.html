@@ -1,22 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es" style="height:100%;width:100%;overflow:hidden;">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pet Voice Synthesizer</title>
-    <meta name="description" content="Create custom pet-inspired sounds by drawing and playing with a charming handcrafted interface blending art and music for pet lovers and creatives." />
-    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Pet Melody 🐾</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Nunito:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Chewy&display=swap" rel="stylesheet" />
     <style>
-      html, body { height: 100%; margin: 0; }
-      #root { height: 100%; }
-      * { box-sizing: border-box; }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; width: 100%; overflow: hidden; background: #5BC8F5; }
+      #root { height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
     </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="height:100%;width:100%;overflow:hidden;">
+    <div id="root" style="height:100%;width:100%;display:flex;flex-direction:column;overflow:hidden;"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
