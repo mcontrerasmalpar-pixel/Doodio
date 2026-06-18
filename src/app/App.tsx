@@ -10,42 +10,54 @@ import type { MelodyNote } from "./components/PlayMode";
 type Screen = "draw" | "play" | "profile";
 
 export default function App() {
-  const [loggedIn,      setLoggedIn]      = useState(false);
-  const [ownerName,     setOwnerName]     = useState("Tú");
-  const [screen,        setScreen]        = useState<Screen>("draw");
-  const [drawingDataUrl,setDrawingDataUrl]= useState<string | null>(null);
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [saving,        setSaving]        = useState(false);
-  const [savedPet,      setSavedPet]      = useState<Pet | null>(null);
-  const [melody,        setMelody]        = useState<MelodyNote[]>([]);
-  const [isPlaying,     setIsPlaying]     = useState(false);
-  const [playTrigger,   setPlayTrigger]   = useState(0);
+  const [loggedIn,       setLoggedIn]       = useState(false);
+  const [ownerName,      setOwnerName]      = useState("Tú");
+  const [screen,         setScreen]         = useState<Screen>("draw");
+  const [drawingDataUrl, setDrawingDataUrl] = useState<string | null>(null);
+  const [showSaveModal,  setShowSaveModal]  = useState(false);
+  const [saving,         setSaving]         = useState(false);
+  const [savedPet,       setSavedPet]       = useState<Pet | null>(null);
+  const [melody,         setMelody]         = useState<MelodyNote[]>([]);
+  const [isPlaying,      setIsPlaying]      = useState(false);
+  const [playTrigger,    setPlayTrigger]    = useState(0);
 
   const handleLogin = (name: string) => {
     setOwnerName(name || "Tú");
     setLoggedIn(true);
   };
 
+  // Only saves the dataUrl in memory — does NOT switch screen
   const handleSaveDrawing = useCallback((url: string) => {
     setDrawingDataUrl(url);
-    if (url) setScreen("play");
   }, []);
 
   const handleSavePet = async (name: string, animal: AnimalType) => {
     setSaving(true);
     try {
-      const drawingUrl = drawingDataUrl ? await uploadDrawing(drawingDataUrl, name) : null;
-      const pet = await savePet({ name, animal_type: animal, owner_name: ownerName, drawing_url: drawingUrl, melody_json: melody });
-      if (pet) { setSavedPet(pet); setShowSaveModal(false); setScreen("profile"); }
-    } finally { setSaving(false); }
+      const drawingUrl = drawingDataUrl
+        ? await uploadDrawing(drawingDataUrl, name)
+        : null;
+      const pet = await savePet({
+        name, animal_type: animal,
+        owner_name: ownerName,
+        drawing_url: drawingUrl,
+        melody_json: melody,
+      });
+      if (pet) {
+        setSavedPet(pet);
+        setShowSaveModal(false);
+        setScreen("profile");
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // ── Login screen ────────────────────────────────────────────
   if (!loggedIn) return <LoginScreen onLogin={handleLogin} />;
 
   const TABS = [
     { id: "draw"    as Screen, label: "🎨 Dibujar" },
-    { id: "play"    as Screen, label: "🎵 Escuchar", locked: !drawingDataUrl },
+    { id: "play"    as Screen, label: "🎵 Escuchar", locked: false },
     { id: "profile" as Screen, label: "🐾 Perfil",   locked: !savedPet },
   ];
 
@@ -78,7 +90,6 @@ export default function App() {
         justifyContent: "space-between",
         gap: "8px", zIndex: 10,
       }}>
-        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
           <div style={{
             width: "34px", height: "34px", borderRadius: "50%",
@@ -92,7 +103,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div style={{ display: "flex", gap: "6px" }}>
           {TABS.map(t => (
             <button key={t.id}
@@ -111,7 +121,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* Guardar chip */}
         <button
           onClick={() => drawingDataUrl && setShowSaveModal(true)}
           style={{
@@ -124,7 +133,7 @@ export default function App() {
           }}
         >
           {drawingDataUrl
-            ? <img src={drawingDataUrl} style={{ width:"22px", height:"22px", borderRadius:"4px", border:"2px solid #1A1A1A", objectFit:"cover" }} />
+            ? <img src={drawingDataUrl} style={{ width: "22px", height: "22px", borderRadius: "4px", border: "2px solid #1A1A1A", objectFit: "cover" }} />
             : <span style={{ fontSize: "0.95rem" }}>🐱</span>
           }
           <span style={{ fontSize: "0.8rem", color: "#1A1A1A" }}>
@@ -133,10 +142,15 @@ export default function App() {
         </button>
       </header>
 
-      {/* Main content — fills remaining height */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        {screen === "draw"    && <DrawMode onSaveDrawing={handleSaveDrawing} />}
-        {screen === "play"    && (
+        {screen === "draw" && (
+          <DrawMode
+            onSaveDrawing={handleSaveDrawing}
+            onGoToListen={() => setScreen("play")}
+            hasDrawing={!!drawingDataUrl}
+          />
+        )}
+        {screen === "play" && (
           <PlayMode
             drawingDataUrl={drawingDataUrl}
             onMelodyReady={setMelody}
@@ -156,7 +170,6 @@ export default function App() {
         )}
       </div>
 
-      {/* Footer */}
       <div style={{
         flexShrink: 0, height: "28px",
         background: "#B8E04A", borderTop: "3px solid #1A1A1A",
