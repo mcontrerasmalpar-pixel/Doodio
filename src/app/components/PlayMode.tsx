@@ -96,19 +96,15 @@ export function generateMelody(dataUrl: string): Promise<MelodyNote[]> {
   });
 }
 
-// ─── Shared AudioContext + optional master bus for remix capture ──────────────────
 let _ctx: AudioContext | null = null;
-let _masterBus: GainNode | null = null;  // set during remix to intercept all audio
+let _masterBus: GainNode | null = null;
 
 function getCtx() {
   if (!_ctx) _ctx = new AudioContext();
   return _ctx;
 }
-
-/** Route all playNote output here when set, otherwise direct to ctx.destination */
 function getOutputNode(): AudioNode {
-  const ctx = getCtx();
-  return _masterBus ?? ctx.destination;
+  return _masterBus ?? getCtx().destination;
 }
 
 type InstrumentId = "piano"|"guitar"|"marimba"|"flute"|"bells"|"synthpad";
@@ -122,61 +118,61 @@ function playNote(freq: number, vol: number, dur: number, inst: InstrumentId, st
   switch (inst) {
     case "piano": {
       const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq; o.connect(gain);
-      gain.gain.linearRampToValueAtTime(vol, startTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-      o.start(startTime); o.stop(startTime + dur);
-      const o2 = ctx.createOscillator(); o2.type = "triangle"; o2.frequency.value = freq * 2;
+      gain.gain.linearRampToValueAtTime(vol, startTime+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+dur);
+      o.start(startTime); o.stop(startTime+dur);
+      const o2 = ctx.createOscillator(); o2.type = "triangle"; o2.frequency.value = freq*2;
       const g2 = ctx.createGain(); g2.gain.value = 0.1; o2.connect(g2); g2.connect(gain);
-      o2.start(startTime); o2.stop(startTime + dur);
+      o2.start(startTime); o2.stop(startTime+dur);
       break;
     }
     case "guitar": {
       const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = freq;
       const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 1800;
       o.connect(f); f.connect(gain);
-      gain.gain.linearRampToValueAtTime(vol * 0.9, startTime + 0.005);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur * 0.8);
-      o.start(startTime); o.stop(startTime + dur);
+      gain.gain.linearRampToValueAtTime(vol*0.9, startTime+0.005);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+dur*0.8);
+      o.start(startTime); o.stop(startTime+dur);
       break;
     }
     case "marimba": {
       const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq; o.connect(gain);
-      gain.gain.linearRampToValueAtTime(vol, startTime + 0.003);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.55);
-      o.start(startTime); o.stop(startTime + 0.6);
+      gain.gain.linearRampToValueAtTime(vol, startTime+0.003);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+0.55);
+      o.start(startTime); o.stop(startTime+0.6);
       break;
     }
     case "flute": {
       const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq;
       const vib = ctx.createOscillator(); vib.frequency.value = 5.5;
-      const vg = ctx.createGain(); vg.gain.value = freq * 0.012;
+      const vg = ctx.createGain(); vg.gain.value = freq*0.012;
       vib.connect(vg); vg.connect(o.frequency); o.connect(gain);
-      gain.gain.linearRampToValueAtTime(vol * 0.7, startTime + 0.06);
-      gain.gain.setValueAtTime(vol * 0.7, startTime + dur - 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-      vib.start(startTime); vib.stop(startTime + dur);
-      o.start(startTime); o.stop(startTime + dur);
+      gain.gain.linearRampToValueAtTime(vol*0.7, startTime+0.06);
+      gain.gain.setValueAtTime(vol*0.7, startTime+dur-0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+dur);
+      vib.start(startTime); vib.stop(startTime+dur);
+      o.start(startTime); o.stop(startTime+dur);
       break;
     }
     case "bells": {
-      [1, 2.756, 5.404].forEach((ratio, i) => {
-        const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq * ratio;
-        const g = ctx.createGain(); g.gain.value = i === 0 ? vol : vol * 0.14;
-        o.connect(g); g.connect(gain); o.start(startTime); o.stop(startTime + dur * 1.5);
+      [1,2.756,5.404].forEach((ratio,i) => {
+        const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = freq*ratio;
+        const g = ctx.createGain(); g.gain.value = i===0 ? vol : vol*0.14;
+        o.connect(g); g.connect(gain); o.start(startTime); o.stop(startTime+dur*1.5);
       });
-      gain.gain.linearRampToValueAtTime(1, startTime + 0.002);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur * 1.5);
+      gain.gain.linearRampToValueAtTime(1, startTime+0.002);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+dur*1.5);
       break;
     }
     case "synthpad": {
-      [1, 1.005, 0.5].forEach(ratio => {
-        const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = freq * ratio;
+      [1,1.005,0.5].forEach(ratio => {
+        const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = freq*ratio;
         const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900;
-        o.connect(f); f.connect(gain); o.start(startTime); o.stop(startTime + dur + 0.3);
+        o.connect(f); f.connect(gain); o.start(startTime); o.stop(startTime+dur+0.3);
       });
-      gain.gain.linearRampToValueAtTime(vol * 0.5, startTime + 0.12);
-      gain.gain.setValueAtTime(vol * 0.5, startTime + dur - 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur + 0.3);
+      gain.gain.linearRampToValueAtTime(vol*0.5, startTime+0.12);
+      gain.gain.setValueAtTime(vol*0.5, startTime+dur-0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime+dur+0.3);
       break;
     }
   }
@@ -193,13 +189,13 @@ const INSTRUMENTS: {id:InstrumentId;label:string;emoji:string;bg:string}[] = [
 
 const NOTE_COLORS = ["#FF6B8A","#FF8C42","#FFE033","#B8E04A","#5BC8F5","#5BAEFF","#C06BDB","#5FD49A"];
 
-function MelodyGrid({notes, activeStep}: {notes: MelodyNote[]; activeStep: number}) {
+function MelodyGrid({notes,activeStep}:{notes:MelodyNote[];activeStep:number}) {
   const ROWS = 8;
   return (
     <div style={{display:"grid",gridTemplateColumns:`repeat(${notes.length},1fr)`,gridTemplateRows:`repeat(${ROWS},1fr)`,gap:"2px",width:"100%",height:"100%"}}>
       {Array.from({length:ROWS}).map((_,row) => notes.map((note,col) => {
         const noteRow = note.rest ? -1 : Math.round((1-(note.volume-0.25)/0.45)*(ROWS-1));
-        const isActive = col === activeStep, hasNote = !note.rest && noteRow === row;
+        const isActive = col===activeStep, hasNote = !note.rest && noteRow===row;
         return (<div key={`${row}-${col}`} style={{
           borderRadius:"4px",
           background: isActive&&hasNote ? NOTE_COLORS[row%NOTE_COLORS.length] : isActive ? "rgba(255,255,255,0.22)" : hasNote ? `${NOTE_COLORS[row%NOTE_COLORS.length]}88` : "rgba(255,255,255,0.07)",
@@ -211,20 +207,13 @@ function MelodyGrid({notes, activeStep}: {notes: MelodyNote[]; activeStep: numbe
   );
 }
 
-// ─── Pet Recorder ────────────────────────────────────────────────────────────────
-function PetRecorder({
-  drawingDataUrl,
-  melody,
-  instId,
-  tempo,
-}: {
-  drawingDataUrl: string | null;
+// ─── Compact Pet Recorder ────────────────────────────────────────────────────
+function PetRecorder({ melody, instId, tempo }: {
   melody: MelodyNote[];
   instId: InstrumentId;
   tempo: number;
 }) {
   const [recording, setRecording] = useState(false);
-  const [audioURL,  setAudioURL]  = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [remixing,  setRemixing]  = useState(false);
   const [remixURL,  setRemixURL]  = useState<string | null>(null);
@@ -239,113 +228,90 @@ function PetRecorder({
       mr.ondataavailable = e => chunksRef.current.push(e.data);
       mr.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        setAudioBlob(blob); setAudioURL(URL.createObjectURL(blob));
-        setRemixURL(null); stream.getTracks().forEach(t => t.stop());
+        setAudioBlob(blob); setRemixURL(null);
+        stream.getTracks().forEach(t => t.stop());
       };
       mr.start(); mediaRecRef.current = mr;
-      setRecording(true); setAudioURL(null); setRemixURL(null);
+      setRecording(true); setAudioBlob(null); setRemixURL(null);
     } catch { alert("Microphone access denied."); }
   };
 
   const stopRecording = () => { mediaRecRef.current?.stop(); setRecording(false); };
 
-  // ─── Remix: route EVERYTHING (melody + pet) through a shared master bus ────
   const remixWithMelody = async () => {
     if (!audioBlob || !melody.length) return;
     setRemixing(true);
     try {
       const ctx = getCtx();
       if (ctx.state === "suspended") await ctx.resume();
-
-      // 1. Create master bus: all audio → masterBus → ctx.destination + recorder
       const masterBus = ctx.createGain();
       masterBus.gain.value = 1.0;
       masterBus.connect(ctx.destination);
-      _masterBus = masterBus;  // playNote will now route here
-
-      // 2. Recorder taps the master bus
+      _masterBus = masterBus;
       const dest = ctx.createMediaStreamDestination();
       masterBus.connect(dest);
       const mr = new MediaRecorder(dest.stream);
       const chunks: BlobPart[] = [];
       mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-      // 3. Play melody through master bus (playNote already uses getOutputNode → masterBus)
       const beatMs = (60 / tempo) * 1000;
       let t = ctx.currentTime + 0.05;
-      const loopNotes = [...melody, ...melody, ...melody]; // 3 loops
+      const loopNotes = [...melody, ...melody, ...melody];
       for (const note of loopNotes) {
-        if (!note.rest) playNote(note.freq, note.volume, note.duration * (120 / tempo), instId, t);
-        t += (beatMs / 1000) * (note.rest ? 0.5 : note.duration * (120 / tempo) * 1.05);
+        if (!note.rest) playNote(note.freq, note.volume, note.duration*(120/tempo), instId, t);
+        t += (beatMs/1000) * (note.rest ? 0.5 : note.duration*(120/tempo)*1.05);
       }
       const melodyDuration = (t - ctx.currentTime) * 1000 + 300;
-
-      // 4. Play pet recording through master bus
       const arrayBuf = await audioBlob.arrayBuffer();
       const decoded  = await ctx.decodeAudioData(arrayBuf);
       const petSrc   = ctx.createBufferSource();
-      petSrc.buffer = decoded;
-      petSrc.loop   = true;
-      const petGain  = ctx.createGain();
-      petGain.gain.value = 0.75;
-      petSrc.connect(petGain);
-      petGain.connect(masterBus);
+      petSrc.buffer = decoded; petSrc.loop = true;
+      const petGain  = ctx.createGain(); petGain.gain.value = 0.75;
+      petSrc.connect(petGain); petGain.connect(masterBus);
       petSrc.start();
-
-      // 5. Record, then clean up
       mr.start();
       setTimeout(() => {
-        mr.stop();
-        petSrc.stop();
-        _masterBus = null;  // restore normal routing
-        masterBus.disconnect();
+        mr.stop(); petSrc.stop();
+        _masterBus = null; masterBus.disconnect();
         mr.onstop = () => {
           setRemixURL(URL.createObjectURL(new Blob(chunks, { type: "audio/webm" })));
           setRemixing(false);
         };
       }, melodyDuration);
-    } catch (err) {
-      console.error(err);
-      _masterBus = null;
-      setRemixing(false);
-    }
+    } catch (err) { console.error(err); _masterBus = null; setRemixing(false); }
   };
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:"10px", padding:"0 14px 14px" }}>
-      <div style={{ height:"2px", background:"rgba(0,0,0,0.15)", borderRadius:"2px" }} />
+    <div style={{ padding:"0 14px 10px", display:"flex", flexDirection:"column", gap:"6px" }}>
+      <div style={{ height:"2px", background:"rgba(0,0,0,0.12)", borderRadius:"2px", marginBottom:"2px" }} />
 
-      {/* Record */}
-      <button
-        onClick={recording ? stopRecording : startRecording}
-        style={{ width:"100%", padding:"14px", borderRadius:"14px", background: recording ? "#FF6B8A" : "#FFFBF2", border: recording ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"1.1rem", color:"#1A1A1A", boxShadow: recording ? "2px 2px 0 #1A1A1A" : "4px 4px 0 #1A1A1A", transform: recording ? "translate(2px,2px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", justifyContent:"center", gap:"10px" }}>
-        <span>{recording ? "⏹" : "🔴"}</span>
-        <span>{recording ? "Stop recording" : "Record your pet"}</span>
-      </button>
-
-      {/* Listen */}
-      {audioURL && !recording && (
-        <audio controls src={audioURL} style={{ width:"100%", borderRadius:"8px" }} />
-      )}
-
-      {/* Remix */}
-      {audioURL && !recording && (
+      {/* Row: Record + Remix side by side */}
+      <div style={{ display:"flex", gap:"8px" }}>
+        {/* Record button */}
         <button
-          onClick={remixWithMelody}
-          disabled={remixing || !melody.length}
-          style={{ width:"100%", padding:"14px", borderRadius:"14px", background: remixing ? "#DDD" : "#C06BDB", border:"3px solid #1A1A1A", cursor: remixing || !melody.length ? "not-allowed" : "pointer", fontFamily:"'Chewy',cursive", fontSize:"1.1rem", color:"#1A1A1A", boxShadow: remixing ? "none" : "4px 4px 0 #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", gap:"10px" }}>
-          <span>🎵</span>
-          <span>{remixing ? "Mixing... 🎶" : "Remix with your drawing!"}</span>
+          onClick={recording ? stopRecording : startRecording}
+          style={{ flex:1, padding:"8px 12px", borderRadius:"50px", background: recording ? "#FF6B8A" : "#FFFBF2", border: recording ? "3px solid #1A1A1A" : "2px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow: recording ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: recording ? "translate(1px,1px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}>
+          <span style={{ fontSize:"0.75rem" }}>{recording ? "⏹" : "🔴"}</span>
+          <span>{recording ? "Stop" : "Record your pet"}</span>
         </button>
-      )}
 
-      {/* Result */}
+        {/* Remix button — only shown after recording */}
+        {audioBlob && !recording && (
+          <button
+            onClick={remixWithMelody}
+            disabled={remixing || !melody.length}
+            style={{ flex:1, padding:"8px 12px", borderRadius:"50px", background: remixing ? "#DDD" : "#C06BDB", border:"2px solid #1A1A1A", cursor: remixing || !melody.length ? "not-allowed" : "pointer", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow: remixing ? "none" : "3px 3px 0 #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}>
+            <span style={{ fontSize:"0.75rem" }}>🎵</span>
+            <span>{remixing ? "Mixing..." : "Remix with drawing"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Result — compact */}
       {remixURL && (
-        <div style={{ background:"#B8E04A", border:"3px solid #1A1A1A", borderRadius:"14px", padding:"12px", boxShadow:"4px 4px 0 #1A1A1A", display:"flex", flexDirection:"column", gap:"8px" }}>
-          <div style={{ fontSize:"0.85rem", color:"#1A1A1A", fontFamily:"'Chewy',cursive" }}>🎉 Your pet + your drawing:</div>
-          <audio controls src={remixURL} style={{ width:"100%", borderRadius:"8px" }} />
-          <a href={remixURL} download="pet-remix.webm" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", padding:"10px", borderRadius:"50px", background:"#FFFBF2", border:"3px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow:"3px 3px 0 #1A1A1A", textDecoration:"none" }}>
-            <span>⬇️</span><span>Download remix</span>
+        <div style={{ background:"#B8E04A", border:"2px solid #1A1A1A", borderRadius:"12px", padding:"8px 12px", boxShadow:"3px 3px 0 #1A1A1A", display:"flex", alignItems:"center", gap:"8px" }}>
+          <audio controls src={remixURL} style={{ flex:1, height:"28px" }} />
+          <a href={remixURL} download="pet-remix.webm" style={{ display:"flex", alignItems:"center", gap:"4px", padding:"6px 10px", borderRadius:"50px", background:"#FFFBF2", border:"2px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.8rem", color:"#1A1A1A", boxShadow:"2px 2px 0 #1A1A1A", textDecoration:"none", flexShrink:0 }}>
+            <span>⬇️</span><span>Save</span>
           </a>
         </div>
       )}
@@ -353,7 +319,7 @@ function PetRecorder({
   );
 }
 
-// ─── PlayMode ───────────────────────────────────────────────────────────────────────
+// ─── PlayMode ────────────────────────────────────────────────────────────────
 interface PlayModeProps {
   drawingDataUrl:       string | null;
   onMelodyReady?:       (notes: MelodyNote[]) => void;
@@ -420,25 +386,25 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
       const note = notes[step];
       const beatMs = (60 / tempoRef.current) * 1000;
       setActiveStep(step);
-      if (!note.rest) playNote(note.freq, note.volume, note.duration * (120 / tempoRef.current), instIdRef.current, getCtx().currentTime);
+      if (!note.rest) playNote(note.freq, note.volume, note.duration*(120/tempoRef.current), instIdRef.current, getCtx().currentTime);
       step++;
       if (step >= notes.length) {
-        if (loopRef.current) { step = 0; timeoutRef.current = setTimeout(tick, beatMs * 0.4); }
+        if (loopRef.current) { step=0; timeoutRef.current=setTimeout(tick, beatMs*0.4); }
         else { setIsPlaying(false); onPlayingChange?.(false); setActiveStep(-1); }
         return;
       }
-      timeoutRef.current = setTimeout(tick, beatMs * (note.rest ? 0.5 : note.duration * (120 / tempoRef.current) * 1.05));
+      timeoutRef.current = setTimeout(tick, beatMs*(note.rest ? 0.5 : note.duration*(120/tempoRef.current)*1.05));
     }
     tick();
   }, [onPlayingChange]);
 
   useEffect(() => {
-    if (melody.length && !isPlaying) { const t = setTimeout(() => play(), 350); return () => clearTimeout(t); }
+    if (melody.length && !isPlaying) { const t=setTimeout(()=>play(),350); return ()=>clearTimeout(t); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [melody]);
 
   useEffect(() => {
-    if (externalPlayTrigger && externalPlayTrigger > 0 && melodyRef.current.length) { stop(); setTimeout(() => play(), 100); }
+    if (externalPlayTrigger && externalPlayTrigger>0 && melodyRef.current.length) { stop(); setTimeout(()=>play(),100); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externalPlayTrigger]);
 
@@ -447,7 +413,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
   const handleInstChange = (i: number) => {
     const wasPlaying = !stopRef.current && isPlaying;
     stop(); setActiveInst(i); instIdRef.current = INSTRUMENTS[i].id;
-    if (wasPlaying) setTimeout(() => play(), 80);
+    if (wasPlaying) setTimeout(()=>play(), 80);
   };
 
   return (
@@ -464,10 +430,10 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
             : <span style={{fontSize:"0.7rem", color:"#555"}}>{melody.filter(n=>!n.rest).length} notes · scale detected</span>}
         </div>
         <div style={{display:"flex", gap:"6px", flexWrap:"wrap", flex:1, justifyContent:"center"}}>
-          {INSTRUMENTS.map((ins, i) => {
-            const active = activeInst === i;
+          {INSTRUMENTS.map((ins,i) => {
+            const active = activeInst===i;
             return (
-              <button key={ins.id} onClick={() => handleInstChange(i)} style={{padding:"6px 14px", borderRadius:"50px", background: active ? ins.bg : "#FFFBF2", border: active ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow: active ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: active ? "translate(1px,1px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", gap:"4px"}}>
+              <button key={ins.id} onClick={()=>handleInstChange(i)} style={{padding:"6px 14px", borderRadius:"50px", background: active ? ins.bg : "#FFFBF2", border: active ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow: active ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: active ? "translate(1px,1px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", gap:"4px"}}>
                 <span>{ins.emoji}</span><span>{ins.label}</span>
               </button>
             );
@@ -483,7 +449,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
               <span style={{fontSize:"2.5rem"}}>🔍</span>
               <span style={{fontSize:"1rem", color:"#FFFBF2", fontFamily:"'Chewy',cursive"}}>Analyzing your drawing...</span>
             </div>
-          ) : melody.length > 0 ? (
+          ) : melody.length>0 ? (
             <MelodyGrid notes={melody} activeStep={activeStep}/>
           ) : (
             <div style={{height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}>
@@ -493,15 +459,10 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
         </div>
       </div>
 
-      {/* Pet recorder — passes melody + instrument so remix works */}
-      <PetRecorder
-        drawingDataUrl={drawingDataUrl}
-        melody={melody}
-        instId={INSTRUMENTS[activeInst].id}
-        tempo={tempo}
-      />
+      {/* Compact pet recorder */}
+      <PetRecorder melody={melody} instId={INSTRUMENTS[activeInst].id} tempo={tempo} />
 
-      {/* Footer controls */}
+      {/* Footer */}
       <div style={{background:"#FFFBF2", borderTop:"3px solid #1A1A1A", padding:"10px 20px", display:"flex", alignItems:"center", gap:"14px", flexShrink:0, flexWrap:"wrap", boxShadow:"0 -2px 0 #1A1A1A"}}>
         <button
           onClick={isPlaying ? stop : play}
@@ -518,10 +479,10 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
             style={{flex:1, accentColor:inst.bg, cursor:"pointer"}}/>
           <span style={{background:inst.bg, border:"2px solid #1A1A1A", borderRadius:"50px", padding:"2px 12px", fontSize:"0.9rem", color:"#1A1A1A", minWidth:"50px", textAlign:"center", flexShrink:0}}>{tempo}</span>
         </div>
-        <button onClick={() => setLoop(l => !l)} style={{padding:"8px 14px", borderRadius:"50px", background: loop ? inst.bg : "#FFFBF2", border: loop ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow: loop ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: loop ? "translate(1px,1px)" : "none", display:"flex", alignItems:"center", gap:"5px"}}>
+        <button onClick={()=>setLoop(l=>!l)} style={{padding:"8px 14px", borderRadius:"50px", background: loop ? inst.bg : "#FFFBF2", border: loop ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow: loop ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: loop ? "translate(1px,1px)" : "none", display:"flex", alignItems:"center", gap:"5px"}}>
           <span>🔁</span><span>Loop {loop ? "ON" : "OFF"}</span>
         </button>
-        {onSavePet && !savedPet && melody.length > 0 && (
+        {onSavePet && !savedPet && melody.length>0 && (
           <button onClick={onSavePet} style={{padding:"10px 20px", borderRadius:"50px", background:"#FF8C42", border:"4px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.95rem", color:"#1A1A1A", boxShadow:"4px 4px 0 #1A1A1A", display:"flex", alignItems:"center", gap:"6px"}}
             onMouseDown={e=>{e.currentTarget.style.transform="translate(2px,2px)";e.currentTarget.style.boxShadow="2px 2px 0 #1A1A1A";}}
             onMouseUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="4px 4px 0 #1A1A1A";}}>

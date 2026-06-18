@@ -1,14 +1,13 @@
 import { useState, useCallback, useRef } from "react";
 import { DrawMode }    from "./components/DrawMode";
 import { PlayMode }    from "./components/PlayMode";
-import { VoiceMode }  from "./components/VoiceMode";
 import { PetProfile } from "./components/PetProfile";
 import { SavePetModal } from "./components/SavePetModal";
 import { LoginScreen } from "./components/LoginScreen";
 import { uploadDrawing, savePet, type AnimalType, type Pet } from "../lib/supabase";
 import type { MelodyNote } from "./components/PlayMode";
 
-type Screen = "draw" | "play" | "voice" | "profile";
+type Screen = "draw" | "play" | "profile";
 
 export default function App() {
   const [loggedIn,       setLoggedIn]       = useState(false);
@@ -22,7 +21,6 @@ export default function App() {
   const [isPlaying,      setIsPlaying]      = useState(false);
   const [playTrigger,    setPlayTrigger]    = useState(0);
 
-  // Global stop ref — PlayMode watches this to stop when we leave the screen
   const stopMelodyRef = useRef<(() => void) | null>(null);
 
   const handleLogin = (name: string) => {
@@ -46,7 +44,6 @@ export default function App() {
     } finally { setSaving(false); }
   };
 
-  // Stop melody BEFORE switching screen
   const goTo = (s: Screen) => {
     stopMelodyRef.current?.();
     setScreen(s);
@@ -55,10 +52,9 @@ export default function App() {
   if (!loggedIn) return <LoginScreen onLogin={handleLogin} />;
 
   const TABS: { id: Screen; label: string; locked?: boolean }[] = [
-    { id: "draw",    label: "🎨 Dibujar" },
-    { id: "play",    label: "🎵 Escuchar" },
-    { id: "voice",   label: "🔊 Voz" },
-    { id: "profile", label: "🐾 Perfil", locked: !savedPet },
+    { id: "draw",    label: "🎨 Draw" },
+    { id: "play",    label: "🎵 Listen" },
+    { id: "profile", label: "🐾 Profile", locked: !savedPet },
   ];
 
   return (
@@ -91,7 +87,7 @@ export default function App() {
           }}>🐾</div>
           <div>
             <div style={{ fontSize:"1rem", color:"#1A1A1A", fontFamily:"'Chewy'", lineHeight:1 }}>Pet Melody</div>
-            <div style={{ fontSize:"0.6rem", color:"#5A3A00", fontFamily:"'Chewy'" }}>Hola, {ownerName} 👋</div>
+            <div style={{ fontSize:"0.6rem", color:"#5A3A00", fontFamily:"'Chewy'" }}>Hi, {ownerName} 👋</div>
           </div>
         </div>
 
@@ -122,7 +118,7 @@ export default function App() {
             ? <img src={drawingDataUrl} style={{ width:"22px",height:"22px",borderRadius:"4px",border:"2px solid #1A1A1A",objectFit:"cover" }} />
             : <span style={{ fontSize:"0.95rem" }}>🐱</span>}
           <span style={{ fontSize:"0.8rem",color:"#1A1A1A" }}>
-            {savedPet ? `${savedPet.name} ✅` : "Guardar"}
+            {savedPet ? `${savedPet.name} ✅` : "Save"}
           </span>
         </button>
       </header>
@@ -146,9 +142,6 @@ export default function App() {
             onStopRef={stopMelodyRef}
           />
         )}
-        {screen === "voice" && (
-          <VoiceMode drawingDataUrl={drawingDataUrl} />
-        )}
         {screen === "profile" && (
           <PetProfile
             currentPet={savedPet} melody={melody}
@@ -163,7 +156,7 @@ export default function App() {
         background:"#B8E04A", borderTop:"3px solid #1A1A1A",
         display:"flex", alignItems:"center", justifyContent:"center", gap:"10px",
       }}>
-        {["1 · Dibuja 🎨","→","2 · Escucha 🎵","→","3 · Voz 🔊","→","4 · Guarda 🐾"].map((t,i) => (
+        {["1 · Draw 🎨","→","2 · Listen 🎵","→","3 · Save 🐾"].map((t,i) => (
           <span key={i} style={{ fontSize:"0.75rem",color:"#1A1A1A",fontFamily:"'Chewy'",opacity:i%2===1?0.4:1 }}>{t}</span>
         ))}
       </div>
