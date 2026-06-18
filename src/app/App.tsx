@@ -1,30 +1,30 @@
 import { useState, useCallback } from "react";
-import { DrawMode } from "./components/DrawMode";
-import { PlayMode } from "./components/PlayMode";
-import { PetProfile } from "./components/PetProfile";
+import { DrawMode }     from "./components/DrawMode";
+import { PlayMode }     from "./components/PlayMode";
+import { PetProfile }   from "./components/PetProfile";
 import { SavePetModal } from "./components/SavePetModal";
+import { LoginScreen }  from "./components/LoginScreen";
 import { uploadDrawing, savePet, type AnimalType, type Pet } from "../lib/supabase";
 import type { MelodyNote } from "./components/PlayMode";
 
 type Screen = "draw" | "play" | "profile";
 
 export default function App() {
-  const [screen,         setScreen]         = useState<Screen>("draw");
-  const [drawingDataUrl, setDrawingDataUrl] = useState<string | null>(null);
-  const [ownerName]                         = useState("Tú");
+  const [loggedIn,      setLoggedIn]      = useState(false);
+  const [ownerName,     setOwnerName]     = useState("Tú");
+  const [screen,        setScreen]        = useState<Screen>("draw");
+  const [drawingDataUrl,setDrawingDataUrl]= useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saving,        setSaving]        = useState(false);
+  const [savedPet,      setSavedPet]      = useState<Pet | null>(null);
+  const [melody,        setMelody]        = useState<MelodyNote[]>([]);
+  const [isPlaying,     setIsPlaying]     = useState(false);
+  const [playTrigger,   setPlayTrigger]   = useState(0);
 
-  const [showSaveModal,  setShowSaveModal]  = useState(false);
-  const [saving,         setSaving]         = useState(false);
-  const [savedPet,       setSavedPet]       = useState<Pet | null>(null);
-  const [melody,         setMelody]         = useState<MelodyNote[]>([]);
-  const [isPlaying,      setIsPlaying]      = useState(false);
-  const [playTrigger,    setPlayTrigger]    = useState(0);
-
-  const TABS: { id: Screen; label: string; locked?: boolean }[] = [
-    { id: "draw",    label: "🎨 Dibujar" },
-    { id: "play",    label: "🎵 Escuchar", locked: !drawingDataUrl },
-    { id: "profile", label: "🐾 Perfil",   locked: !savedPet },
-  ];
+  const handleLogin = (name: string) => {
+    setOwnerName(name || "Tú");
+    setLoggedIn(true);
+  };
 
   const handleSaveDrawing = useCallback((url: string) => {
     setDrawingDataUrl(url);
@@ -34,35 +34,29 @@ export default function App() {
   const handleSavePet = async (name: string, animal: AnimalType) => {
     setSaving(true);
     try {
-      const drawingUrl = drawingDataUrl
-        ? await uploadDrawing(drawingDataUrl, name)
-        : null;
-      const pet = await savePet({
-        name,
-        animal_type:  animal,
-        owner_name:   ownerName,
-        drawing_url:  drawingUrl,
-        melody_json:  melody,
-      });
-      if (pet) {
-        setSavedPet(pet);
-        setShowSaveModal(false);
-        setScreen("profile");
-      }
-    } finally {
-      setSaving(false);
-    }
+      const drawingUrl = drawingDataUrl ? await uploadDrawing(drawingDataUrl, name) : null;
+      const pet = await savePet({ name, animal_type: animal, owner_name: ownerName, drawing_url: drawingUrl, melody_json: melody });
+      if (pet) { setSavedPet(pet); setShowSaveModal(false); setScreen("profile"); }
+    } finally { setSaving(false); }
   };
 
+  // ── Login screen ────────────────────────────────────────────
+  if (!loggedIn) return <LoginScreen onLogin={handleLogin} />;
+
+  const TABS = [
+    { id: "draw"    as Screen, label: "🎨 Dibujar" },
+    { id: "play"    as Screen, label: "🎵 Escuchar", locked: !drawingDataUrl },
+    { id: "profile" as Screen, label: "🐾 Perfil",   locked: !savedPet },
+  ];
+
   return (
-    <div
-      className="size-full flex flex-col overflow-hidden"
-      style={{
-        background: "#5BC8F5",
-        fontFamily: "'Chewy', 'Caveat', cursive",
-        position: "relative",
-      }}
-    >
+    <div style={{
+      width: "100%", height: "100%",
+      display: "flex", flexDirection: "column",
+      overflow: "hidden",
+      background: "#5BC8F5",
+      fontFamily: "'Chewy', cursive",
+    }}>
       {showSaveModal && drawingDataUrl && (
         <SavePetModal
           drawingDataUrl={drawingDataUrl}
@@ -73,98 +67,76 @@ export default function App() {
         />
       )}
 
-      {/* Floating doodles */}
-      {[
-        { e: "🎵", top: "8%",  left: "4%",  size: "1.6rem", rot: "15deg",  op: 0.3 },
-        { e: "🐾", top: "14%", left: "92%", size: "1.4rem", rot: "-10deg", op: 0.25 },
-        { e: "✦",  top: "5%",  left: "55%", size: "1.2rem", rot: "20deg",  op: 0.2 },
-        { e: "⭐", top: "80%", left: "6%",  size: "1.1rem", rot: "8deg",   op: 0.25 },
-      ].map((d, i) => (
-        <span key={i} style={{
-          position: "fixed", fontSize: d.size, top: d.top, left: d.left,
-          transform: `rotate(${d.rot})`, opacity: d.op,
-          pointerEvents: "none", zIndex: 0,
-        }}>{d.e}</span>
-      ))}
-
       {/* Header */}
       <header style={{
+        flexShrink: 0,
         background: "#FFE033",
         borderBottom: "3px solid #1A1A1A",
-        padding: "8px 16px",
+        boxShadow: "0 3px 0 #1A1A1A",
+        padding: "6px 12px",
         display: "flex", alignItems: "center",
         justifyContent: "space-between",
-        flexShrink: 0, position: "relative", zIndex: 10,
-        boxShadow: "0 3px 0 #1A1A1A",
+        gap: "8px", zIndex: 10,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
           <div style={{
-            width: "38px", height: "38px", borderRadius: "50%",
+            width: "34px", height: "34px", borderRadius: "50%",
             background: "#FF8C42", border: "3px solid #1A1A1A",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "1.2rem", boxShadow: "2px 2px 0 #1A1A1A",
+            fontSize: "1.1rem", boxShadow: "2px 2px 0 #1A1A1A",
           }}>🐾</div>
           <div>
-            <h1 style={{ fontSize: "1.2rem", margin: 0, color: "#1A1A1A", fontFamily: "'Chewy', cursive", lineHeight: 1.1 }}>Pet Melody</h1>
-            <p style={{ fontSize: "0.65rem", margin: 0, color: "#5A3A00", fontFamily: "'Chewy', cursive" }}>dibuja · escucha · guarda 🎵</p>
+            <div style={{ fontSize: "1rem", color: "#1A1A1A", fontFamily: "'Chewy'", lineHeight: 1 }}>Pet Melody</div>
+            <div style={{ fontSize: "0.6rem", color: "#5A3A00", fontFamily: "'Chewy'" }}>dibuja · escucha · guarda 🎵</div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: "5px" }}>
-          {TABS.map((t) => {
-            const isActive = screen === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => !t.locked && setScreen(t.id)}
-                style={{
-                  padding: "6px 14px", borderRadius: "50px",
-                  background: isActive ? "#FF8C42" : t.locked ? "#E8E0C8" : "#FFFBF2",
-                  border: isActive ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
-                  color: t.locked ? "#AAA" : "#1A1A1A",
-                  cursor: t.locked ? "not-allowed" : "pointer",
-                  fontFamily: "'Chewy', cursive", fontSize: "0.85rem",
-                  boxShadow: isActive ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
-                  transform: isActive ? "translate(1px,1px)" : "none",
-                  transition: "all 0.1s",
-                }}
-              >
-                {t.label}{t.locked ? " 🔒" : ""}
-              </button>
-            );
-          })}
+        <div style={{ display: "flex", gap: "6px" }}>
+          {TABS.map(t => (
+            <button key={t.id}
+              onClick={() => !t.locked && setScreen(t.id)}
+              style={{
+                padding: "6px 14px", borderRadius: "50px",
+                background: screen === t.id ? "#FF8C42" : t.locked ? "#E8E0C8" : "#FFFBF2",
+                border: screen === t.id ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
+                color: t.locked ? "#AAA" : "#1A1A1A",
+                cursor: t.locked ? "not-allowed" : "pointer",
+                fontFamily: "'Chewy'", fontSize: "0.85rem",
+                boxShadow: screen === t.id ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
+                transform: screen === t.id ? "translate(1px,1px)" : "none",
+              }}
+            >{t.label}{t.locked ? " 🔒" : ""}</button>
+          ))}
         </div>
 
-        {/* Save chip */}
+        {/* Guardar chip */}
         <button
           onClick={() => drawingDataUrl && setShowSaveModal(true)}
-          title={drawingDataUrl ? "Guardar mascota" : "Dibuja primero"}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
             background: savedPet ? "#B8E04A" : "#FFFBF2",
             border: "3px solid #1A1A1A", borderRadius: "50px",
             padding: "4px 12px", boxShadow: "3px 3px 0 #1A1A1A",
             cursor: drawingDataUrl ? "pointer" : "default",
-            fontFamily: "'Chewy', cursive", transition: "all 0.1s",
+            fontFamily: "'Chewy'", flexShrink: 0,
           }}
-          onMouseDown={e => { if (drawingDataUrl) { e.currentTarget.style.transform = "translate(1px,1px)"; e.currentTarget.style.boxShadow = "2px 2px 0 #1A1A1A"; }}}
-          onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "3px 3px 0 #1A1A1A"; }}
         >
           {drawingDataUrl
-            ? <img src={drawingDataUrl} style={{ width:"24px", height:"24px", borderRadius:"5px", border:"2px solid #1A1A1A", objectFit:"cover" }} />
-            : <span style={{ fontSize: "1rem" }}>🐱</span>
+            ? <img src={drawingDataUrl} style={{ width:"22px", height:"22px", borderRadius:"4px", border:"2px solid #1A1A1A", objectFit:"cover" }} />
+            : <span style={{ fontSize: "0.95rem" }}>🐱</span>
           }
-          <span style={{ fontSize: "0.85rem", color: "#1A1A1A" }}>
+          <span style={{ fontSize: "0.8rem", color: "#1A1A1A" }}>
             {savedPet ? `${savedPet.name} ✅` : "Guardar"}
           </span>
         </button>
       </header>
 
-      {/* Screens */}
-      <div className="flex-1 flex flex-col overflow-hidden" style={{ position: "relative", zIndex: 1 }}>
-        {screen === "draw" && <DrawMode onSaveDrawing={handleSaveDrawing} />}
-        {screen === "play" && (
+      {/* Main content — fills remaining height */}
+      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        {screen === "draw"    && <DrawMode onSaveDrawing={handleSaveDrawing} />}
+        {screen === "play"    && (
           <PlayMode
             drawingDataUrl={drawingDataUrl}
             onMelodyReady={setMelody}
@@ -186,16 +158,12 @@ export default function App() {
 
       {/* Footer */}
       <div style={{
-        height: "32px", flexShrink: 0,
+        flexShrink: 0, height: "28px",
         background: "#B8E04A", borderTop: "3px solid #1A1A1A",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
       }}>
         {["1 · Dibuja 🎨", "→", "2 · Escucha 🎵", "→", "3 · Guarda 🐾"].map((t, i) => (
-          <span key={i} style={{
-            fontSize: "0.8rem", color: "#1A1A1A",
-            fontFamily: "'Chewy', cursive",
-            opacity: i % 2 === 1 ? 0.4 : 1,
-          }}>{t}</span>
+          <span key={i} style={{ fontSize: "0.75rem", color: "#1A1A1A", fontFamily: "'Chewy'", opacity: i % 2 === 1 ? 0.4 : 1 }}>{t}</span>
         ))}
       </div>
     </div>
