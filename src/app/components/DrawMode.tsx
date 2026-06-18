@@ -1,14 +1,20 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 
 const CRAYON_COLORS = [
-  { name: "Cherry", color: "#FF6B8A" },
-  { name: "Ocean", color: "#5BAEFF" },
-  { name: "Mint", color: "#5FD49A" },
-  { name: "Grape", color: "#C06BDB" },
-  { name: "Sun", color: "#FFD06B" },
-  { name: "Coral", color: "#FF8C6B" },
-  { name: "Sky", color: "#5BD4D2" },
-  { name: "Cocoa", color: "#6B4226" },
+  { name: "Cherry",  color: "#FF6B8A" },
+  { name: "Ocean",   color: "#5BAEFF" },
+  { name: "Mint",    color: "#5FD49A" },
+  { name: "Grape",   color: "#C06BDB" },
+  { name: "Sun",     color: "#FFD06B" },
+  { name: "Coral",   color: "#FF8C6B" },
+  { name: "Teal",    color: "#5BD4D2" },
+  { name: "Dark",    color: "#3A3A3A" },
+];
+
+const BRUSH_SIZES = [
+  { label: "S", size: 6  },
+  { label: "M", size: 14 },
+  { label: "L", size: 24 },
 ];
 
 interface DrawModeProps {
@@ -20,22 +26,22 @@ export function DrawMode({ onSaveDrawing }: DrawModeProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
   const [color, setColor] = useState(CRAYON_COLORS[0].color);
+  const [brushSize, setBrushSize] = useState(1); // index into BRUSH_SIZES
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "#FDF6E8";
+    ctx.fillStyle = "#FFFBF2";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // linen weave texture
-    for (let y = 0; y < canvas.height; y += 4) {
-      for (let x = 0; x < canvas.width; x += 4) {
-        const v = Math.random() * 0.045;
-        ctx.fillStyle = `rgba(139,107,74,${v})`;
-        ctx.fillRect(x, y, 2, 1);
-        ctx.fillStyle = `rgba(139,107,74,${v * 0.6})`;
-        ctx.fillRect(x + 2, y + 2, 2, 1);
+    // dot grid
+    ctx.fillStyle = "rgba(100,100,100,0.12)";
+    for (let y = 20; y < canvas.height; y += 20) {
+      for (let x = 20; x < canvas.width; x += 20) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }, []);
@@ -67,13 +73,11 @@ export function DrawMode({ onSaveDrawing }: DrawModeProps) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.globalAlpha = 0.7;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 7, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, BRUSH_SIZES[brushSize].size / 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = 1;
-  }, [color]);
+  }, [color, brushSize]);
 
   const draw = useCallback((e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -87,17 +91,12 @@ export function DrawMode({ onSaveDrawing }: DrawModeProps) {
     ctx.moveTo(lastPos.x, lastPos.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.strokeStyle = color;
-    ctx.lineWidth = 14;
+    ctx.lineWidth = BRUSH_SIZES[brushSize].size;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.globalAlpha = 0.65;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = color;
     ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
     setLastPos(pos);
-  }, [isDrawing, lastPos, color]);
+  }, [isDrawing, lastPos, color, brushSize]);
 
   const stopDraw = useCallback(() => {
     setIsDrawing(false);
@@ -110,172 +109,108 @@ export function DrawMode({ onSaveDrawing }: DrawModeProps) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#FDF6E8";
+    ctx.fillStyle = "#FFFBF2";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (let y = 0; y < canvas.height; y += 4) {
-      for (let x = 0; x < canvas.width; x += 4) {
-        const v = Math.random() * 0.045;
-        ctx.fillStyle = `rgba(139,107,74,${v})`;
-        ctx.fillRect(x, y, 2, 1);
-        ctx.fillStyle = `rgba(139,107,74,${v * 0.6})`;
-        ctx.fillRect(x + 2, y + 2, 2, 1);
+    ctx.fillStyle = "rgba(100,100,100,0.12)";
+    for (let y = 20; y < canvas.height; y += 20) {
+      for (let x = 20; x < canvas.width; x += 20) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
     onSaveDrawing(canvas.toDataURL());
   };
 
   return (
-    <div
-      className="flex-1 flex gap-6 p-5 overflow-hidden"
-      style={{ fontFamily: "'Caveat', cursive" }}
-    >
-      {/* ── Left: Polaroid ── */}
-      <div className="flex flex-col items-center justify-center gap-4" style={{ width: "38%" }}>
-        {/* kawaii label */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #F9C4D0, #C8F0E0)",
-            borderRadius: "50px",
-            padding: "6px 20px",
-            border: "2px dashed #8B6B4A",
-            boxShadow: "3px 3px 0 #C4975A",
-          }}
-        >
-          <span style={{ fontSize: "1.4rem", color: "#3D2B1F", fontWeight: 700 }}>
-            🐾 Referencia ✨
-          </span>
-        </div>
+    <div className="flex-1 flex gap-0 overflow-hidden" style={{ fontFamily: "'Chewy', cursive" }}>
 
-        {/* Polaroid */}
-        <div
-          style={{
-            background: "#FFFDF6",
-            padding: "14px 14px 58px 14px",
-            boxShadow: "5px 8px 24px rgba(61,43,31,0.28), 0 2px 6px rgba(61,43,31,0.1)",
-            transform: "rotate(-3.5deg)",
-            border: "1.5px solid #E8DCC8",
-            maxWidth: "300px",
-            width: "100%",
-            position: "relative",
-          }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=400&fit=crop&auto=format"
-            alt="Cute cat"
-            style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block", borderRadius: "2px" }}
-          />
-          <p
+      {/* ── Left sidebar: tools ── */}
+      <div style={{
+        width: "72px", flexShrink: 0,
+        background: "#FFE033",
+        borderRight: "3px solid #1A1A1A",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", gap: "12px",
+        padding: "16px 0",
+      }}>
+        {/* Brush sizes */}
+        <span style={{ fontSize: "0.7rem", color: "#1A1A1A", fontFamily: "'Chewy',cursive" }}>SIZE</span>
+        {BRUSH_SIZES.map((b, i) => (
+          <button
+            key={b.label}
+            onClick={() => setBrushSize(i)}
             style={{
-              textAlign: "center",
-              marginTop: "10px",
-              color: "#7A5C44",
-              fontSize: "1.7rem",
-              fontFamily: "'Caveat', cursive",
-              fontWeight: 700,
+              width: `${18 + i * 8}px`, height: `${18 + i * 8}px`,
+              borderRadius: "50%",
+              background: brushSize === i ? color : "#FFFBF2",
+              border: `3px solid #1A1A1A`,
+              cursor: "pointer",
+              boxShadow: brushSize === i ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
+              transform: brushSize === i ? "translate(1px,1px)" : "none",
+              transition: "all 0.1s",
             }}
-          >
-            Mochi ♡
-          </p>
-          {/* tape strips */}
-          <div style={{ position: "absolute", top: "-10px", left: "18px", width: "44px", height: "20px", background: "rgba(168,216,176,0.55)", transform: "rotate(-8deg)", borderRadius: "2px" }} />
-          <div style={{ position: "absolute", top: "-10px", right: "22px", width: "44px", height: "20px", background: "rgba(245,228,160,0.55)", transform: "rotate(6deg)", borderRadius: "2px" }} />
-        </div>
+          />
+        ))}
 
-        {/* Colour palette */}
-        <div
-          style={{
-            background: "#FFFBF2",
-            borderRadius: "20px",
-            padding: "14px 18px",
-            border: "2px dashed #8B6B4A",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "10px",
-            boxShadow: "3px 3px 0 #C4975A",
-          }}
-        >
-          <span style={{ fontSize: "1.2rem", color: "#7A5C44", fontWeight: 600 }}>
-            🖍️ Elige tu crayón
-          </span>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-            {CRAYON_COLORS.map((c) => (
-              <button
-                key={c.color}
-                title={c.name}
-                onClick={() => setColor(c.color)}
-                style={{
-                  width: "34px",
-                  height: "34px",
-                  borderRadius: "50%",
-                  background: c.color,
-                  border: color === c.color ? "3.5px solid #3D2B1F" : "2.5px dashed rgba(61,43,31,0.25)",
-                  cursor: "pointer",
-                  transform: color === c.color ? "scale(1.22)" : "scale(1)",
-                  transition: "transform 0.14s",
-                  boxShadow: color === c.color ? `0 0 0 2px white, 0 0 0 4px ${c.color}` : "0 2px 4px rgba(0,0,0,0.15)",
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Divider */}
+        <div style={{ width: "48px", height: "3px", background: "#1A1A1A", borderRadius: "2px" }} />
+
+        {/* Color swatches */}
+        <span style={{ fontSize: "0.7rem", color: "#1A1A1A", fontFamily: "'Chewy',cursive" }}>COLOR</span>
+        {CRAYON_COLORS.map((c) => (
+          <button
+            key={c.color}
+            title={c.name}
+            onClick={() => setColor(c.color)}
+            style={{
+              width: "36px", height: "36px",
+              borderRadius: "50%",
+              background: c.color,
+              border: color === c.color ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
+              cursor: "pointer",
+              boxShadow: color === c.color ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
+              transform: color === c.color ? "translate(1px,1px) scale(1.1)" : "none",
+              transition: "all 0.1s",
+            }}
+          />
+        ))}
       </div>
 
-      {/* ── Right: Canvas ── */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 relative">
-        <div
-          style={{
-            background: "linear-gradient(135deg, #F5E4A0, #F2AABB)",
-            borderRadius: "50px",
-            padding: "6px 20px",
-            border: "2px dashed #8B6B4A",
-            boxShadow: "3px 3px 0 #C4975A",
-          }}
-        >
-          <span style={{ fontSize: "1.4rem", color: "#3D2B1F", fontWeight: 700 }}>
-            🎨 ¡Dibuja a tu mascota! 🎵
+      {/* ── Center: canvas ── */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: "12px", padding: "16px",
+        background: "#5BC8F5",
+      }}>
+        {/* Label */}
+        <div style={{
+          background: "#FF8C42", border: "3px solid #1A1A1A",
+          borderRadius: "50px", padding: "4px 20px",
+          boxShadow: "3px 3px 0 #1A1A1A",
+        }}>
+          <span style={{ fontSize: "1.1rem", color: "#1A1A1A", fontFamily: "'Chewy',cursive" }}>
+            🎨 ¡Dibuja a tu mascota!
           </span>
         </div>
 
-        {/* Stretched canvas with wooden frame */}
-        <div
-          style={{
-            padding: "18px",
-            background: "linear-gradient(135deg, #A0622A, #7A4520, #A0622A, #8B5020)",
-            borderRadius: "6px",
-            boxShadow: "0 8px 28px rgba(61,43,31,0.35), inset 0 0 12px rgba(0,0,0,0.4)",
-            position: "relative",
-          }}
-        >
-          {/* corner pegs */}
-          {[
-            { top: "8px", left: "8px" }, { top: "8px", right: "8px" },
-            { bottom: "8px", left: "8px" }, { bottom: "8px", right: "8px" },
-          ].map((s, i) => (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                width: "12px",
-                height: "12px",
-                borderRadius: "50%",
-                background: "radial-gradient(circle at 35% 35%, #D4A040, #8B5020)",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                ...s,
-              }}
-            />
-          ))}
+        {/* Canvas frame */}
+        <div style={{
+          background: "#1A1A1A",
+          borderRadius: "12px",
+          padding: "6px",
+          boxShadow: "6px 6px 0 #1A1A1A",
+        }}>
           <canvas
             ref={canvasRef}
-            width={430}
-            height={430}
+            width={440}
+            height={400}
             style={{
               display: "block",
               cursor: "crosshair",
-              borderRadius: "2px",
+              borderRadius: "8px",
               touchAction: "none",
-              boxShadow: "inset 0 0 8px rgba(0,0,0,0.15)",
             }}
             onMouseDown={startDraw}
             onMouseMove={draw}
@@ -287,81 +222,82 @@ export function DrawMode({ onSaveDrawing }: DrawModeProps) {
           />
         </div>
 
-        {/* Toolbar: only crayon indicator + clear */}
-        <div
+        {/* Hint text */}
+        <span style={{
+          fontSize: "0.8rem", color: "#1A1A1A", opacity: 0.6,
+          fontFamily: "'Chewy',cursive",
+        }}>dibuja aquí tu mascota ✦</span>
+      </div>
+
+      {/* ── Right sidebar: actions ── */}
+      <div style={{
+        width: "88px", flexShrink: 0,
+        background: "#B8E04A",
+        borderLeft: "3px solid #1A1A1A",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: "14px",
+        padding: "16px 0",
+      }}>
+        {/* Current color preview */}
+        <div style={{
+          width: "44px", height: "44px", borderRadius: "50%",
+          background: color, border: "3px solid #1A1A1A",
+          boxShadow: "3px 3px 0 #1A1A1A",
+        }} />
+        <span style={{ fontSize: "0.7rem", color: "#1A1A1A", fontFamily: "'Chewy',cursive", textAlign: "center" }}>color activo</span>
+
+        <div style={{ width: "60px", height: "3px", background: "#1A1A1A" }} />
+
+        {/* Clear button */}
+        <button
+          onClick={clearCanvas}
           style={{
-            display: "flex",
-            gap: "12px",
-            alignItems: "center",
-            background: "#FFFBF2",
-            borderRadius: "50px",
-            padding: "10px 22px",
-            border: "2.5px dashed #8B6B4A",
-            boxShadow: "4px 4px 0 #C4975A",
+            width: "60px", height: "60px", borderRadius: "50%",
+            background: "#FF6B8A", border: "3px solid #1A1A1A",
+            cursor: "pointer", fontFamily: "'Chewy',cursive",
+            fontSize: "0.75rem", color: "#1A1A1A",
+            boxShadow: "3px 3px 0 #1A1A1A",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexDirection: "column", gap: "2px",
+            transition: "all 0.1s",
+          }}
+          onMouseDown={e => {
+            e.currentTarget.style.transform = "translate(2px,2px)";
+            e.currentTarget.style.boxShadow = "1px 1px 0 #1A1A1A";
+          }}
+          onMouseUp={e => {
+            e.currentTarget.style.transform = "";
+            e.currentTarget.style.boxShadow = "3px 3px 0 #1A1A1A";
           }}
         >
-          {/* Current color swatch */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.4rem" }}>🖍️</span>
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                background: color,
-                border: "2.5px dashed #8B6B4A",
-                boxShadow: `0 0 0 2px white, 0 0 8px ${color}80`,
-              }}
-            />
-            <span style={{ fontSize: "1.1rem", color: "#7A5C44" }}>Crayón</span>
-          </div>
+          <span style={{ fontSize: "1.2rem" }}>🗑️</span>
+          <span>Reset</span>
+        </button>
 
-          <div style={{ width: "1px", height: "36px", background: "#C4975A" }} />
-
-          <button
-            onClick={clearCanvas}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 18px",
-              borderRadius: "50px",
-              background: "#F2AABB",
-              border: "2px dashed #5A1A2E",
-              cursor: "pointer",
-              fontFamily: "'Caveat', cursive",
-              fontSize: "1.1rem",
-              color: "#5A1A2E",
-              fontWeight: 700,
-              boxShadow: "3px 3px 0 #C47080",
-              transition: "transform 0.1s",
-            }}
-            onMouseDown={e => (e.currentTarget.style.transform = "translate(2px,2px)")}
-            onMouseUp={e => (e.currentTarget.style.transform = "")}
-          >
-            ✨ Limpiar
-          </button>
-        </div>
-
-        {/* floating sparkles */}
-        {[
-          { s: "1.8rem", t: "22px", r: "18px", rot: "18deg", op: 0.7, e: "⭐" },
-          { s: "1.3rem", b: "88px", r: "22px", rot: "-10deg", op: 0.65, e: "🌸" },
-          { s: "1.5rem", b: "95px", l: "14px", rot: "8deg", op: 0.7, e: "💫" },
-          { s: "1.2rem", t: "28px", l: "16px", rot: "-15deg", op: 0.6, e: "✨" },
-        ].map((d, i) => (
-          <span key={i} style={{
-            position: "absolute",
-            fontSize: d.s,
-            top: d.t,
-            bottom: (d as any).b,
-            right: (d as any).r,
-            left: (d as any).l,
-            transform: `rotate(${d.rot})`,
-            opacity: d.op,
-            pointerEvents: "none",
-          }}>{d.e}</span>
-        ))}
+        {/* Camera button placeholder */}
+        <button
+          style={{
+            width: "60px", height: "60px", borderRadius: "50%",
+            background: "#5BC8F5", border: "3px solid #1A1A1A",
+            cursor: "pointer", fontFamily: "'Chewy',cursive",
+            fontSize: "0.75rem", color: "#1A1A1A",
+            boxShadow: "3px 3px 0 #1A1A1A",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexDirection: "column", gap: "2px",
+            transition: "all 0.1s",
+          }}
+          onMouseDown={e => {
+            e.currentTarget.style.transform = "translate(2px,2px)";
+            e.currentTarget.style.boxShadow = "1px 1px 0 #1A1A1A";
+          }}
+          onMouseUp={e => {
+            e.currentTarget.style.transform = "";
+            e.currentTarget.style.boxShadow = "3px 3px 0 #1A1A1A";
+          }}
+        >
+          <span style={{ fontSize: "1.2rem" }}>📷</span>
+          <span>Cam</span>
+        </button>
       </div>
     </div>
   );
