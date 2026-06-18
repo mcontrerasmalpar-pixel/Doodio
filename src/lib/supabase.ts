@@ -1,10 +1,9 @@
-// Supabase client — loaded only at runtime, safe to tree-shake if missing
 let _supabase: import("@supabase/supabase-js").SupabaseClient | null = null;
 
 const SUPABASE_URL = "https://sikensiujqlgbbqgesqy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H8JdapG_nvaEkY_gPSboOA_tRHEXX00";
 
-async function getClient() {
+export async function getClient() {
   if (_supabase) return _supabase;
   try {
     const { createClient } = await import("@supabase/supabase-js");
@@ -15,6 +14,53 @@ async function getClient() {
   return _supabase;
 }
 
+// ── Auth ───────────────────────────────────────────────────────────────
+export interface AuthResult {
+  user:  import("@supabase/supabase-js").User | null;
+  error: string | null;
+}
+
+export async function signUp(email: string, password: string, username: string): Promise<AuthResult> {
+  try {
+    const sb = await getClient();
+    if (!sb) return { user: null, error: "Sin conexión" };
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { username } },
+    });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (e: unknown) {
+    return { user: null, error: e instanceof Error ? e.message : "Error desconocido" };
+  }
+}
+
+export async function signIn(email: string, password: string): Promise<AuthResult> {
+  try {
+    const sb = await getClient();
+    if (!sb) return { user: null, error: "Sin conexión" };
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) return { user: null, error: error.message };
+    return { user: data.user, error: null };
+  } catch (e: unknown) {
+    return { user: null, error: e instanceof Error ? e.message : "Error desconocido" };
+  }
+}
+
+export async function signOut(): Promise<void> {
+  const sb = await getClient();
+  if (sb) await sb.auth.signOut();
+}
+
+export async function getSession() {
+  const sb = await getClient();
+  if (!sb) return null;
+  const { data } = await sb.auth.getSession();
+  return data.session;
+}
+
+// ── Pets ──────────────────────────────────────────────────────────
 export type AnimalType = "cat" | "dog" | "bird" | "frog" | "rabbit" | "hamster";
 
 export interface Pet {
@@ -40,31 +86,22 @@ export async function uploadDrawing(dataUrl: string, petName: string): Promise<s
     const { data } = sb.storage.from("drawings").getPublicUrl(filename);
     return data.publicUrl;
   } catch (e) {
-    console.error("uploadDrawing failed:", e);
-    return null;
+    console.error("uploadDrawing failed:", e); return null;
   }
 }
 
 export async function savePet(pet: {
-  name:        string;
-  animal_type: AnimalType;
-  owner_name:  string;
-  drawing_url: string | null;
-  melody_json: unknown | null;
+  name: string; animal_type: AnimalType;
+  owner_name: string; drawing_url: string | null; melody_json: unknown | null;
 }): Promise<Pet | null> {
   try {
     const sb = await getClient();
     if (!sb) return null;
-    const { data, error } = await sb
-      .from("pets")
-      .insert([pet])
-      .select()
-      .single();
+    const { data, error } = await sb.from("pets").insert([pet]).select().single();
     if (error) { console.error("savePet error:", error); return null; }
     return data as Pet;
   } catch (e) {
-    console.error("savePet failed:", e);
-    return null;
+    console.error("savePet failed:", e); return null;
   }
 }
 
@@ -72,14 +109,8 @@ export async function fetchPets(): Promise<Pet[]> {
   try {
     const sb = await getClient();
     if (!sb) return [];
-    const { data, error } = await sb
-      .from("pets")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20);
+    const { data, error } = await sb.from("pets").select("*").order("created_at", { ascending: false }).limit(20);
     if (error) { console.error("fetchPets error:", error); return []; }
     return (data ?? []) as Pet[];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
