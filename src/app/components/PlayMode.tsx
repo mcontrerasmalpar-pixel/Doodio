@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 export interface MelodyNote {
   freq:     number;
   duration: number;
@@ -8,7 +7,6 @@ export interface MelodyNote {
   rest:     boolean;
 }
 
-// ─── Scales ───────────────────────────────────────────────────────────────────
 const SCALES: Record<string, number[]> = {
   major:      [0, 2, 4, 5, 7, 9, 11, 12],
   minor:      [0, 2, 3, 5, 7, 8, 10, 12],
@@ -24,16 +22,11 @@ const ROOTS: Record<string, number> = {
 
 const ROOT_NAMES = Object.keys(ROOTS);
 
-// ─── Robust melody generator ──────────────────────────────────────────────────
 export function generateMelody(dataUrl: string): Promise<MelodyNote[]> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const COLS = 16;
-      const ROWS = 8;
-      const W = COLS * 8;
-      const H = ROWS * 8;
-
+      const COLS = 16, ROWS = 8, W = COLS * 8, H = ROWS * 8;
       const cv = document.createElement("canvas");
       cv.width = W; cv.height = H;
       const ctx = cv.getContext("2d")!;
@@ -41,31 +34,25 @@ export function generateMelody(dataUrl: string): Promise<MelodyNote[]> {
       const { data } = ctx.getImageData(0, 0, W, H);
 
       let hueSum = 0, inkCount = 0, totalBrightness = 0;
-
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
         if (a < 10) continue;
         const br = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-        // skip near-white background
         if (br > 0.92 && r > 235 && g > 228) continue;
-        inkCount++;
-        totalBrightness += br;
-        const rn = r/255, gn = g/255, bn = b/255;
-        const max = Math.max(rn,gn,bn), min = Math.min(rn,gn,bn);
+        inkCount++; totalBrightness += br;
+        const rn=r/255, gn=g/255, bn=b/255;
+        const max=Math.max(rn,gn,bn), min=Math.min(rn,gn,bn);
         if (max !== min) {
-          const d = max - min;
-          let h = 0;
-          if (max === rn)      h = ((gn-bn)/d + (gn < bn ? 6:0)) / 6;
-          else if (max === gn) h = ((bn-rn)/d + 2) / 6;
-          else                 h = ((rn-gn)/d + 4) / 6;
+          const d = max - min; let h = 0;
+          if (max===rn)      h = ((gn-bn)/d + (gn<bn?6:0))/6;
+          else if (max===gn) h = ((bn-rn)/d + 2)/6;
+          else               h = ((rn-gn)/d + 4)/6;
           hueSum += h * 360;
         }
       }
 
-      // ── Fallback: if barely any ink, return a cheerful C-major arpeggio ──
       if (inkCount < 20) {
-        const scale = SCALES.major;
-        const root  = ROOTS.C;
+        const scale = SCALES.major, root = ROOTS.C;
         resolve([
           ...scale.map(s => ({ freq: root * Math.pow(2, s/12), duration: 0.35, volume: 0.45, rest: false })),
           ...scale.slice(0,4).reverse().map(s => ({ freq: root * Math.pow(2, s/12), duration: 0.35, volume: 0.38, rest: false })),
@@ -73,87 +60,56 @@ export function generateMelody(dataUrl: string): Promise<MelodyNote[]> {
         return;
       }
 
-      const avgHue    = hueSum / inkCount;
-      const avgBright = totalBrightness / inkCount;
-
-      const rootName = ROOT_NAMES[Math.floor((avgHue / 360) * ROOT_NAMES.length) % ROOT_NAMES.length];
-      const rootHz   = ROOTS[rootName];
-
-      const scaleName =
-        avgBright > 0.65 ? "major"
-        : avgBright > 0.45 ? "pentatonic"
-        : avgBright > 0.3  ? "dorian"
-        : avgBright > 0.18 ? "minor"
-        : "blues";
+      const avgHue = hueSum / inkCount, avgBright = totalBrightness / inkCount;
+      const rootName = ROOT_NAMES[Math.floor((avgHue/360)*ROOT_NAMES.length) % ROOT_NAMES.length];
+      const rootHz = ROOTS[rootName];
+      const scaleName = avgBright>0.65?"major":avgBright>0.45?"pentatonic":avgBright>0.3?"dorian":avgBright>0.18?"minor":"blues";
       const scale = SCALES[scaleName];
 
-      // ── Build grid ──
-      const raw: (MelodyNote | null)[] = [];
+      const raw: (MelodyNote|null)[] = [];
       let activeCount = 0;
 
       for (let col = 0; col < COLS; col++) {
-        const x0 = Math.floor((col / COLS) * W);
-        const x1 = Math.floor(((col+1) / COLS) * W);
-        let colInk = 0, rowWeightSum = 0, volSum = 0;
-
-        for (let row = 0; row < ROWS; row++) {
-          const y0 = Math.floor((row / ROWS) * H);
-          const y1 = Math.floor(((row+1) / ROWS) * H);
-          let cellInk = 0;
-
-          for (let px = x0; px < x1; px++) {
-            for (let py = y0; py < y1; py++) {
-              const idx = (py * W + px) * 4;
-              const r = data[idx], g = data[idx+1], b = data[idx+2], a = data[idx+3];
-              if (a < 10) continue;
-              const br = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-              if (br > 0.92 && r > 235 && g > 228) continue;
-              cellInk++;
-              volSum += 1 - br;
-            }
+        const x0=Math.floor((col/COLS)*W), x1=Math.floor(((col+1)/COLS)*W);
+        let colInk=0, rowWeightSum=0, volSum=0;
+        for (let row=0; row<ROWS; row++) {
+          const y0=Math.floor((row/ROWS)*H), y1=Math.floor(((row+1)/ROWS)*H);
+          let cellInk=0;
+          for (let px=x0;px<x1;px++) for (let py=y0;py<y1;py++) {
+            const idx=(py*W+px)*4;
+            const r=data[idx],g=data[idx+1],b=data[idx+2],a=data[idx+3];
+            if (a<10) continue;
+            const br=(r*0.299+g*0.587+b*0.114)/255;
+            if (br>0.92&&r>235&&g>228) continue;
+            cellInk++; volSum+=1-br;
           }
-          if (cellInk > 0) {
-            colInk += cellInk;
-            rowWeightSum += (ROWS - 1 - row) * cellInk;
-          }
+          if (cellInk>0) { colInk+=cellInk; rowWeightSum+=(ROWS-1-row)*cellInk; }
         }
-
-        if (colInk === 0) {
-          raw.push(null);
-        } else {
+        if (colInk===0) { raw.push(null); }
+        else {
           activeCount++;
-          const avgRow = rowWeightSum / colInk;
-          const noteIdx = Math.round((avgRow / (ROWS - 1)) * (scale.length - 1));
-          const semitones = scale[Math.min(noteIdx, scale.length - 1)];
-          const freq = rootHz * Math.pow(2, semitones / 12);
-          const volume = Math.min(0.7, 0.3 + (volSum / colInk) * 0.7);
-          const density = colInk / ((x1 - x0) * H);
-          const duration = density > 0.35 ? 0.5 : 0.32;
-          raw.push({ freq, duration, volume, rest: false });
+          const avgRow=rowWeightSum/colInk;
+          const noteIdx=Math.round((avgRow/(ROWS-1))*(scale.length-1));
+          const semitones=scale[Math.min(noteIdx,scale.length-1)];
+          const freq=rootHz*Math.pow(2,semitones/12);
+          const volume=Math.min(0.7,0.3+(volSum/colInk)*0.7);
+          const density=colInk/((x1-x0)*H);
+          raw.push({ freq, duration: density>0.35?0.5:0.32, volume, rest: false });
         }
       }
 
-      // ── Guarantee at least 8 active notes ──
-      // If drawing was sparse, fill with scale notes in sequence
       if (activeCount < 8) {
-        let scaleIdx = 0;
-        for (let i = 0; i < raw.length; i++) {
+        let scaleIdx=0;
+        for (let i=0;i<raw.length;i++) {
           if (!raw[i]) {
-            const s = scale[scaleIdx % scale.length];
-            raw[i] = {
-              freq: rootHz * Math.pow(2, s / 12),
-              duration: 0.3,
-              volume: 0.32,
-              rest: false,
-            };
-            scaleIdx++;
-            activeCount++;
-            if (activeCount >= 8) break;
+            const s=scale[scaleIdx%scale.length];
+            raw[i]={ freq: rootHz*Math.pow(2,s/12), duration:0.3, volume:0.32, rest:false };
+            scaleIdx++; activeCount++;
+            if (activeCount>=8) break;
           }
         }
       }
-
-      resolve(raw.map(n => n ?? { freq: 0, duration: 0.25, volume: 0, rest: true }));
+      resolve(raw.map(n => n ?? { freq:0, duration:0.25, volume:0, rest:true }));
     };
     img.src = dataUrl;
   });
@@ -237,17 +193,15 @@ function playNote(freq: number, vol: number, dur: number, inst: InstrumentId, st
   }
 }
 
-// ─── Instrument config ────────────────────────────────────────────────────────
 const INSTRUMENTS: { id: InstrumentId; label: string; emoji: string; bg: string }[] = [
-  { id: "piano",    label: "Piano",     emoji: "🎹", bg: "#FF6B8A" },
-  { id: "guitar",   label: "Guitarra",  emoji: "🎸", bg: "#FFE033" },
-  { id: "marimba",  label: "Marimba",   emoji: "🎵", bg: "#B8E04A" },
-  { id: "flute",    label: "Flauta",    emoji: "🪈", bg: "#5BC8F5" },
-  { id: "bells",    label: "Campanas",  emoji: "🔔", bg: "#FFE033" },
-  { id: "synthpad", label: "Synth",     emoji: "🌟", bg: "#C06BDB" },
+  { id: "piano",    label: "Piano",    emoji: "🎹", bg: "#FF6B8A" },
+  { id: "guitar",   label: "Guitarra", emoji: "🎸", bg: "#FFE033" },
+  { id: "marimba",  label: "Marimba",  emoji: "🎵", bg: "#B8E04A" },
+  { id: "flute",    label: "Flauta",   emoji: "🪈", bg: "#5BC8F5" },
+  { id: "bells",    label: "Campanas", emoji: "🔔", bg: "#FFE033" },
+  { id: "synthpad", label: "Synth",    emoji: "🌟", bg: "#C06BDB" },
 ];
 
-// ─── Grid visualizer ──────────────────────────────────────────────────────────
 const NOTE_COLORS = ["#FF6B8A","#FF8C42","#FFE033","#B8E04A","#5BC8F5","#5BAEFF","#C06BDB","#5FD49A"];
 
 function MelodyGrid({ notes, activeStep }: { notes: MelodyNote[]; activeStep: number }) {
@@ -256,26 +210,22 @@ function MelodyGrid({ notes, activeStep }: { notes: MelodyNote[]; activeStep: nu
     <div style={{
       display: "grid",
       gridTemplateColumns: `repeat(${notes.length}, 1fr)`,
-      gridTemplateRows:    `repeat(${ROWS}, 1fr)`,
+      gridTemplateRows: `repeat(${ROWS}, 1fr)`,
       gap: "2px", width: "100%", height: "100%",
     }}>
       {Array.from({ length: ROWS }).map((_, row) =>
         notes.map((note, col) => {
-          const noteRow = note.rest ? -1 : Math.round(
-            (1 - (note.volume - 0.25) / 0.45) * (ROWS - 1)
-          );
-          const isActive = col === activeStep;
-          const hasNote  = !note.rest && noteRow === row;
+          const noteRow = note.rest ? -1 : Math.round((1-(note.volume-0.25)/0.45)*(ROWS-1));
+          const isActive = col === activeStep, hasNote = !note.rest && noteRow === row;
           return (
             <div key={`${row}-${col}`} style={{
               borderRadius: "4px",
-              background:
-                isActive && hasNote ? NOTE_COLORS[row % NOTE_COLORS.length]
-                : isActive          ? "rgba(255,255,255,0.22)"
-                : hasNote           ? `${NOTE_COLORS[row % NOTE_COLORS.length]}88`
+              background: isActive&&hasNote ? NOTE_COLORS[row%NOTE_COLORS.length]
+                : isActive ? "rgba(255,255,255,0.22)"
+                : hasNote  ? `${NOTE_COLORS[row%NOTE_COLORS.length]}88`
                 : "rgba(255,255,255,0.07)",
               border: hasNote ? "2px solid #1A1A1A" : "1px solid rgba(0,0,0,0.08)",
-              transform: isActive && hasNote ? "scale(1.1)" : "none",
+              transform: isActive&&hasNote ? "scale(1.1)" : "none",
               transition: "all 0.07s",
             }} />
           );
@@ -285,24 +235,16 @@ function MelodyGrid({ notes, activeStep }: { notes: MelodyNote[]; activeStep: nu
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
 interface PlayModeProps {
-  drawingDataUrl:     string | null;
-  onMelodyReady?:     (notes: MelodyNote[]) => void;
-  onPlayingChange?:   (playing: boolean) => void;
+  drawingDataUrl:       string | null;
+  onMelodyReady?:       (notes: MelodyNote[]) => void;
+  onPlayingChange?:     (playing: boolean) => void;
   externalPlayTrigger?: number;
-  onSavePet?:         () => void;
-  savedPet?:          { name: string } | null;
+  onSavePet?:           () => void;
+  savedPet?:            { name: string } | null;
 }
 
-export function PlayMode({
-  drawingDataUrl,
-  onMelodyReady,
-  onPlayingChange,
-  externalPlayTrigger,
-  onSavePet,
-  savedPet,
-}: PlayModeProps) {
+export function PlayMode({ drawingDataUrl, onMelodyReady, onPlayingChange, externalPlayTrigger, onSavePet, savedPet }: PlayModeProps) {
   const [melody,      setMelody]      = useState<MelodyNote[]>([]);
   const [isPlaying,   setIsPlaying]   = useState(false);
   const [activeStep,  setActiveStep]  = useState(-1);
@@ -311,17 +253,25 @@ export function PlayMode({
   const [tempo,       setTempo]       = useState(120);
   const [loop,        setLoop]        = useState(true);
 
-  const stopRef    = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopRef     = useRef(false);
+  const timeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // KEY FIX: always current values accessible inside play() closure
+  const instIdRef   = useRef<InstrumentId>(INSTRUMENTS[0].id);
+  const tempoRef    = useRef(120);
+  const loopRef     = useRef(true);
+  const melodyRef   = useRef<MelodyNote[]>([]);
 
-  const inst = INSTRUMENTS[activeInst];
+  useEffect(() => { instIdRef.current  = INSTRUMENTS[activeInst].id; }, [activeInst]);
+  useEffect(() => { tempoRef.current   = tempo; },                     [tempo]);
+  useEffect(() => { loopRef.current    = loop; },                      [loop]);
+  useEffect(() => { melodyRef.current  = melody; },                    [melody]);
 
-  // Analyze drawing
   useEffect(() => {
     if (!drawingDataUrl) return;
     setIsAnalyzing(true);
     generateMelody(drawingDataUrl).then(notes => {
       setMelody(notes);
+      melodyRef.current = notes;
       onMelodyReady?.(notes);
       setIsAnalyzing(false);
     });
@@ -335,33 +285,36 @@ export function PlayMode({
     setActiveStep(-1);
   }, [onPlayingChange]);
 
+  // play() reads everything from refs — never stale
   const play = useCallback((notesOverride?: MelodyNote[]) => {
-    const notes = notesOverride ?? melody;
+    const notes = notesOverride ?? melodyRef.current;
     if (!notes.length) return;
     const ctx = getCtx();
     if (ctx.state === "suspended") ctx.resume();
     stopRef.current = false;
     setIsPlaying(true);
     onPlayingChange?.(true);
-    const beatMs = (60 / tempo) * 1000;
     let step = 0;
     function tick() {
       if (stopRef.current) return;
-      const note = notes[step];
+      const note    = notes[step];
+      const beatMs  = (60 / tempoRef.current) * 1000;
+      const instId  = instIdRef.current;
       setActiveStep(step);
       if (!note.rest) {
-        playNote(note.freq, note.volume, note.duration * (120 / tempo), inst.id, getCtx().currentTime);
+        playNote(note.freq, note.volume, note.duration * (120 / tempoRef.current), instId, getCtx().currentTime);
       }
       step++;
       if (step >= notes.length) {
-        if (loop) { step = 0; timeoutRef.current = setTimeout(tick, beatMs * 0.4); }
+        if (loopRef.current) { step = 0; timeoutRef.current = setTimeout(tick, beatMs * 0.4); }
         else { setIsPlaying(false); onPlayingChange?.(false); setActiveStep(-1); }
         return;
       }
-      timeoutRef.current = setTimeout(tick, beatMs * (note.rest ? 0.5 : note.duration * (120/tempo) * 1.05));
+      const nextDelay = beatMs * (note.rest ? 0.5 : note.duration * (120 / tempoRef.current) * 1.05);
+      timeoutRef.current = setTimeout(tick, nextDelay);
     }
     tick();
-  }, [melody, tempo, inst, loop, onPlayingChange]);
+  }, [onPlayingChange]);
 
   // Auto-play when melody ready
   useEffect(() => {
@@ -372,60 +325,65 @@ export function PlayMode({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [melody]);
 
-  // External play trigger (from PetProfile)
   useEffect(() => {
-    if (externalPlayTrigger && externalPlayTrigger > 0 && melody.length) {
-      stop();
-      setTimeout(() => play(), 100);
+    if (externalPlayTrigger && externalPlayTrigger > 0 && melodyRef.current.length) {
+      stop(); setTimeout(() => play(), 100);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [externalPlayTrigger]);
 
+  const inst = INSTRUMENTS[activeInst];
+
+  const handleInstChange = (i: number) => {
+    const wasPlaying = !stopRef.current && isPlaying;
+    stop();
+    setActiveInst(i);
+    instIdRef.current = INSTRUMENTS[i].id; // update ref immediately
+    if (wasPlaying) setTimeout(() => play(), 80);
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ fontFamily: "'Chewy', cursive", background: "#5BC8F5" }}>
 
-      {/* Top bar */}
       <div style={{
         background: "#5BC8F5", borderBottom: "3px solid #1A1A1A",
         padding: "10px 16px",
         display: "flex", alignItems: "center", gap: "12px",
         flexShrink: 0, flexWrap: "wrap",
       }}>
-        {/* Pet thumbnail */}
         <div style={{
-          width: "60px", height: "60px",
-          background: "#FFFBF2", border: "3px solid #1A1A1A",
-          borderRadius: "14px", overflow: "hidden", flexShrink: 0,
-          boxShadow: "3px 3px 0 #1A1A1A",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          width:"60px", height:"60px", background:"#FFFBF2",
+          border:"3px solid #1A1A1A", borderRadius:"14px", overflow:"hidden",
+          flexShrink:0, boxShadow:"3px 3px 0 #1A1A1A",
+          display:"flex", alignItems:"center", justifyContent:"center",
         }}>
           {drawingDataUrl
             ? <img src={drawingDataUrl} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-            : <span style={{ fontSize: "1.6rem" }}>🎨</span>}
+            : <span style={{ fontSize:"1.6rem" }}>🎨</span>}
         </div>
 
         <div style={{ display:"flex", flexDirection:"column", gap:"2px", flexShrink:0 }}>
-          <span style={{ fontSize: "0.85rem", color: "#1A1A1A" }}>🎵 Melodía generada</span>
+          <span style={{ fontSize:"0.85rem", color:"#1A1A1A" }}>🎵 Melodía generada</span>
           {isAnalyzing
             ? <span style={{ fontSize:"0.7rem", color:"#555" }}>⏳ Analizando dibujo...</span>
             : <span style={{ fontSize:"0.7rem", color:"#555" }}>{melody.filter(n=>!n.rest).length} notas · escala detectada</span>
           }
         </div>
 
-        {/* Instruments */}
         <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", flex:1, justifyContent:"center" }}>
           {INSTRUMENTS.map((ins, i) => {
             const active = activeInst === i;
             return (
-              <button key={ins.id} onClick={() => { stop(); setActiveInst(i); }} style={{
-                padding: "6px 14px", borderRadius: "50px",
+              <button key={ins.id} onClick={() => handleInstChange(i)} style={{
+                padding:"6px 14px", borderRadius:"50px",
                 background: active ? ins.bg : "#FFFBF2",
                 border: active ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
-                cursor: "pointer", fontFamily: "'Chewy',cursive", fontSize: "0.85rem", color: "#1A1A1A",
+                cursor:"pointer", fontFamily:"'Chewy',cursive",
+                fontSize:"0.85rem", color:"#1A1A1A",
                 boxShadow: active ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
                 transform: active ? "translate(1px,1px)" : "none",
-                transition: "all 0.1s",
-                display: "flex", alignItems: "center", gap: "4px",
+                transition:"all 0.1s",
+                display:"flex", alignItems:"center", gap:"4px",
               }}>
                 <span>{ins.emoji}</span><span>{ins.label}</span>
               </button>
@@ -434,13 +392,11 @@ export function PlayMode({
         </div>
       </div>
 
-      {/* Grid */}
       <div style={{ flex:1, padding:"14px", display:"flex", flexDirection:"column", gap:"10px", overflow:"hidden" }}>
         <div style={{
-          flex: 1,
-          background: "rgba(0,0,0,0.15)",
-          border: "3px solid #1A1A1A", borderRadius: "16px",
-          padding: "12px", boxShadow: "4px 4px 0 #1A1A1A", overflow: "hidden",
+          flex:1, background:"rgba(0,0,0,0.15)",
+          border:"3px solid #1A1A1A", borderRadius:"16px",
+          padding:"12px", boxShadow:"4px 4px 0 #1A1A1A", overflow:"hidden",
         }}>
           {isAnalyzing ? (
             <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:"10px" }}>
@@ -457,25 +413,24 @@ export function PlayMode({
         </div>
       </div>
 
-      {/* Controls */}
       <div style={{
-        background: "#FFFBF2", borderTop: "3px solid #1A1A1A",
-        padding: "10px 20px",
-        display: "flex", alignItems: "center", gap: "14px",
-        flexShrink: 0, flexWrap: "wrap",
-        boxShadow: "0 -2px 0 #1A1A1A",
+        background:"#FFFBF2", borderTop:"3px solid #1A1A1A",
+        padding:"10px 20px",
+        display:"flex", alignItems:"center", gap:"14px",
+        flexShrink:0, flexWrap:"wrap",
+        boxShadow:"0 -2px 0 #1A1A1A",
       }}>
-        {/* Play/Stop */}
         <button
           onClick={isPlaying ? stop : play}
           disabled={!melody.length || isAnalyzing}
           style={{
-            width: "56px", height: "56px", borderRadius: "50%",
+            width:"56px", height:"56px", borderRadius:"50%",
             background: isPlaying ? "#FF6B8A" : "#B8E04A",
-            border: "3px solid #1A1A1A", cursor: melody.length ? "pointer" : "not-allowed",
-            fontSize: "1.6rem", boxShadow: "4px 4px 0 #1A1A1A",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.1s",
+            border:"3px solid #1A1A1A",
+            cursor: melody.length ? "pointer" : "not-allowed",
+            fontSize:"1.6rem", boxShadow:"4px 4px 0 #1A1A1A",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all 0.1s",
           }}
           onMouseDown={e => { e.currentTarget.style.transform="translate(2px,2px)"; e.currentTarget.style.boxShadow="2px 2px 0 #1A1A1A"; }}
           onMouseUp={e   => { e.currentTarget.style.transform=""; e.currentTarget.style.boxShadow="4px 4px 0 #1A1A1A"; }}
@@ -483,7 +438,6 @@ export function PlayMode({
           {isPlaying ? "⏹" : "▶️"}
         </button>
 
-        {/* Tempo */}
         <div style={{ display:"flex", alignItems:"center", gap:"10px", flex:1, minWidth:"160px" }}>
           <span style={{ fontSize:"0.9rem", color:"#1A1A1A", flexShrink:0 }}>Tempo</span>
           <input
@@ -492,42 +446,35 @@ export function PlayMode({
             style={{ flex:1, accentColor: inst.bg, cursor:"pointer" }}
           />
           <span style={{
-            background: inst.bg, border:"2px solid #1A1A1A",
+            background:inst.bg, border:"2px solid #1A1A1A",
             borderRadius:"50px", padding:"2px 12px",
-            fontSize:"0.9rem", color:"#1A1A1A", minWidth:"50px", textAlign:"center", flexShrink:0,
+            fontSize:"0.9rem", color:"#1A1A1A",
+            minWidth:"50px", textAlign:"center", flexShrink:0,
           }}>{tempo}</span>
         </div>
 
-        {/* Loop */}
-        <button
-          onClick={() => setLoop(l => !l)}
-          style={{
-            padding: "8px 14px", borderRadius: "50px",
-            background: loop ? inst.bg : "#FFFBF2",
-            border: loop ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
-            cursor: "pointer", fontFamily: "'Chewy',cursive",
-            fontSize: "0.85rem", color: "#1A1A1A",
-            boxShadow: loop ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
-            transform: loop ? "translate(1px,1px)" : "none", transition: "all 0.1s",
-            display: "flex", alignItems: "center", gap: "5px",
-          }}
-        >
+        <button onClick={() => setLoop(l => !l)} style={{
+          padding:"8px 14px", borderRadius:"50px",
+          background: loop ? inst.bg : "#FFFBF2",
+          border: loop ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
+          cursor:"pointer", fontFamily:"'Chewy',cursive",
+          fontSize:"0.85rem", color:"#1A1A1A",
+          boxShadow: loop ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
+          transform: loop ? "translate(1px,1px)" : "none",
+          display:"flex", alignItems:"center", gap:"5px",
+        }}>
           <span>🔁</span><span>Loop {loop ? "ON" : "OFF"}</span>
         </button>
 
-        {/* Save pet CTA */}
         {onSavePet && !savedPet && melody.length > 0 && (
-          <button
-            onClick={onSavePet}
-            style={{
-              padding: "10px 20px", borderRadius: "50px",
-              background: "#FF8C42", border: "4px solid #1A1A1A",
-              cursor: "pointer", fontFamily: "'Chewy',cursive",
-              fontSize: "0.95rem", color: "#1A1A1A",
-              boxShadow: "4px 4px 0 #1A1A1A",
-              display: "flex", alignItems: "center", gap: "6px",
-              animation: "pulse 2s infinite",
-            }}
+          <button onClick={onSavePet} style={{
+            padding:"10px 20px", borderRadius:"50px",
+            background:"#FF8C42", border:"4px solid #1A1A1A",
+            cursor:"pointer", fontFamily:"'Chewy',cursive",
+            fontSize:"0.95rem", color:"#1A1A1A",
+            boxShadow:"4px 4px 0 #1A1A1A",
+            display:"flex", alignItems:"center", gap:"6px",
+          }}
             onMouseDown={e => { e.currentTarget.style.transform="translate(2px,2px)"; e.currentTarget.style.boxShadow="2px 2px 0 #1A1A1A"; }}
             onMouseUp={e   => { e.currentTarget.style.transform=""; e.currentTarget.style.boxShadow="4px 4px 0 #1A1A1A"; }}
           >
@@ -537,10 +484,10 @@ export function PlayMode({
 
         {savedPet && (
           <div style={{
-            padding: "8px 16px", borderRadius: "50px",
-            background: "#B8E04A", border: "3px solid #1A1A1A",
-            fontFamily: "'Chewy',cursive", fontSize: "0.9rem", color: "#1A1A1A",
-            boxShadow: "3px 3px 0 #1A1A1A",
+            padding:"8px 16px", borderRadius:"50px",
+            background:"#B8E04A", border:"3px solid #1A1A1A",
+            fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A",
+            boxShadow:"3px 3px 0 #1A1A1A",
           }}>✅ {savedPet.name} guardada</div>
         )}
       </div>
