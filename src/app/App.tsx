@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { DrawMode } from "./components/DrawMode";
 import { PlayMode } from "./components/PlayMode";
+import { VoiceMode } from "./components/VoiceMode";
 import { LoginScreen } from "./components/LoginScreen";
 
-type Screen = "draw" | "play";
+type Screen = "draw" | "play" | "voice";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("draw");
@@ -21,6 +22,12 @@ export default function App() {
       />
     );
   }
+
+  const TABS: { id: Screen; label: string }[] = [
+    { id: "draw",  label: "🎨 Draw"  },
+    { id: "play",  label: "🎵 Play"  },
+    { id: "voice", label: "🔊 Voice" },
+  ];
 
   return (
     <div
@@ -46,7 +53,7 @@ export default function App() {
         }}>{d.e}</span>
       ))}
 
-      {/* ===== Header ===== */}
+      {/* ── Header ── */}
       <header style={{
         background: "#FFE033",
         borderBottom: "3px solid #1A1A1A",
@@ -75,19 +82,18 @@ export default function App() {
             <p style={{
               fontSize: "0.75rem", margin: 0, color: "#5A3A00",
               fontFamily: "'Chewy', cursive",
-            }}>draw your pet · make it sing 🎵</p>
+            }}>draw · play · speak 🎵</p>
           </div>
         </div>
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: "6px" }}>
-          {(["draw", "play"] as Screen[]).map((s) => {
-            const label = s === "draw" ? "🎨 Draw" : "🎵 Play";
-            const isActive = screen === s;
+          {TABS.map((t) => {
+            const isActive = screen === t.id;
             return (
               <button
-                key={s}
-                onClick={() => setScreen(s)}
+                key={t.id}
+                onClick={() => setScreen(t.id)}
                 style={{
                   padding: "8px 20px",
                   borderRadius: "50px",
@@ -97,12 +103,11 @@ export default function App() {
                   cursor: "pointer",
                   fontFamily: "'Chewy', cursive",
                   fontSize: "1rem",
-                  fontWeight: 400,
                   boxShadow: isActive ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
                   transform: isActive ? "translate(1px,1px)" : "none",
                   transition: "all 0.1s",
                 }}
-              >{label}</button>
+              >{t.label}</button>
             );
           })}
         </div>
@@ -119,23 +124,21 @@ export default function App() {
         </div>
       </header>
 
-      {/* ===== Screens ===== */}
+      {/* ── Screens ── */}
       <div className="flex-1 flex flex-col overflow-hidden" style={{ position: "relative", zIndex: 1 }}>
-        {screen === "draw" ? (
-          <DrawMode onSaveDrawing={setDrawingDataUrl} />
-        ) : (
-          <PlayMode drawingDataUrl={drawingDataUrl} />
-        )}
+        {screen === "draw"  && <DrawMode  onSaveDrawing={setDrawingDataUrl} />}
+        {screen === "play"  && <PlayMode  drawingDataUrl={drawingDataUrl}   />}
+        {screen === "voice" && <VoiceMode drawingDataUrl={drawingDataUrl}   />}
       </div>
 
-      {/* ===== Hill footer ===== */}
+      {/* ── Footer ── */}
       <div style={{
-        height: "44px", flexShrink: 0, position: "relative",
+        height: "44px", flexShrink: 0,
         background: "#B8E04A", borderTop: "3px solid #1A1A1A",
         display: "flex", alignItems: "center", justifyContent: "center", gap: "24px",
         boxShadow: "0 -2px 0 #1A1A1A",
       }}>
-        {["1 · Draw 🎨", "→", "2 · Generate 🎵", "→", "3 · Play 🎹"].map((t, i) => (
+        {["1 · Draw 🎨", "→", "2 · Play 🎵", "→", "3 · Voice 🔊"].map((t, i) => (
           <span key={i} style={{
             fontSize: "0.9rem", color: "#1A1A1A",
             fontFamily: "'Chewy', cursive",
