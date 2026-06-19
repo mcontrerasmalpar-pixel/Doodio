@@ -6,9 +6,9 @@ const ANIMAL_EMOJI: Record<AnimalType, string> = {
   cat:     "🐱",
   dog:     "🐶",
   bird:    "🐦",
-  frog:    "🐸",
-  rabbit:  "🐰",
-  hamster: "🐹",
+  frog:    "🌱",
+  rabbit:  "🏠",
+  hamster: "⭐",
 };
 
 const CARD_COLORS = [
@@ -16,9 +16,7 @@ const CARD_COLORS = [
 ];
 
 interface PetProfileProps {
-  /** current user's just-saved pet (may be null if not saved yet) */
   currentPet: Pet | null;
-  /** melody notes for the current pet */
   melody: MelodyNote[];
   onPlayMelody: () => void;
   isPlaying: boolean;
@@ -42,7 +40,7 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
       background: "#5BC8F5",
     }}>
 
-      {/* ── Hero: current pet ── */}
+      {/* Hero: current doodle */}
       {currentPet && (
         <div style={{
           background: "#FFE033",
@@ -63,7 +61,7 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
             {currentPet.drawing_url
               ? <img src={currentPet.drawing_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
               : <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", fontSize:"3rem" }}>
-                  {ANIMAL_EMOJI[currentPet.animal_type]}
+                  {ANIMAL_EMOJI[currentPet.animal_type] ?? "🎨"}
                 </div>
             }
           </div>
@@ -71,12 +69,12 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
           {/* Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "2rem" }}>{ANIMAL_EMOJI[currentPet.animal_type]}</span>
+              <span style={{ fontSize: "2rem" }}>{ANIMAL_EMOJI[currentPet.animal_type] ?? "🎨"}</span>
               <span style={{ fontSize: "1.8rem", color: "#1A1A1A" }}>{currentPet.name}</span>
             </div>
             <span style={{ fontSize: "0.9rem", color: "#5A3A00" }}>de {currentPet.owner_name}</span>
             <span style={{ fontSize: "0.8rem", color: "#888" }}>
-              {melody.filter(n => !n.rest).length} notas · perfil guardado ✅
+              {melody.filter(n => !n.rest).length} notas · doodle guardado ✅
             </span>
           </div>
 
@@ -102,7 +100,7 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
         </div>
       )}
 
-      {/* ── Gallery: all pets ── */}
+      {/* Gallery: all doodles */}
       <div style={{
         flex: 1, overflowY: "auto",
         padding: "16px 20px",
@@ -110,15 +108,15 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
         <h2 style={{
           fontSize: "1.2rem", color: "#1A1A1A",
           margin: "0 0 12px", fontFamily: "'Chewy',cursive",
-        }}>🐾 Mascotas guardadas</h2>
+        }}>🎨 Doodles guardados</h2>
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#FFFBF2", fontSize: "1.1rem" }}>
-            ⏳ Cargando mascotas...
+            ⏳ Cargando doodles...
           </div>
         ) : allPets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#FFFBF2", fontSize: "1rem" }}>
-            Sé el primero en guardar tu mascota 🎨
+            ¡Sé el primero en guardar tu doodle! 🎨
           </div>
         ) : (
           <div style={{
@@ -136,7 +134,6 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
                 display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
                 cursor: "default",
               }}>
-                {/* Drawing or emoji */}
                 <div style={{
                   width: "80px", height: "80px",
                   border: "3px solid #1A1A1A", borderRadius: "14px",
@@ -145,12 +142,12 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
                 }}>
                   {pet.drawing_url
                     ? <img src={pet.drawing_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                    : <span style={{ fontSize: "2.5rem" }}>{ANIMAL_EMOJI[pet.animal_type] ?? "🐾"}</span>
+                    : <span style={{ fontSize: "2.5rem" }}>{ANIMAL_EMOJI[pet.animal_type] ?? "🎨"}</span>
                   }
                 </div>
 
                 <span style={{ fontSize: "1.1rem", color: "#1A1A1A", textAlign: "center" }}>
-                  {ANIMAL_EMOJI[pet.animal_type] ?? "🐾"} {pet.name}
+                  {ANIMAL_EMOJI[pet.animal_type] ?? "🎨"} {pet.name}
                 </span>
                 <span style={{ fontSize: "0.7rem", color: "#1A1A1A", opacity: 0.7 }}>
                   {pet.owner_name}
