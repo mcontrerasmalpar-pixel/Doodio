@@ -39,6 +39,9 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   const lastPosRef   = useRef<{ x: number; y: number } | null>(null);
   const isDrawingRef = useRef(false);
   const lastTouchPos = useRef({ x: 0, y: 0 });
+  // snapshot of drawing content to restore after resize
+  const snapshotRef  = useRef<string | null>(null);
+  const initializedRef = useRef(false);
 
   const [color,      setColor]      = useState(CRAYON_COLORS[0].color);
   const [brushSize,  setBrushSize]  = useState(1);
@@ -63,10 +66,15 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
     const measure = () => {
       const el = wrapRef.current;
       if (!el) return;
-      // Reserve ~60px for the bottom button bar
+
+      // Save current drawing before resize
+      const c = canvasRef.current;
+      if (c && initializedRef.current) {
+        snapshotRef.current = c.toDataURL();
+      }
+
       const maxH = Math.max(el.clientHeight - 60, 80);
       const maxW = Math.max(el.clientWidth - 16, 80);
-      // Keep canvas square using the smaller dimension, capped at maxH
       const side = Math.min(maxW, maxH);
       setCanvasWH({ w: side, h: side });
     };
@@ -79,6 +87,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   const initCanvas = useCallback(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d"); if (!ctx) return;
+    // Draw background
     ctx.fillStyle = "#FFFBF2";
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "rgba(100,100,100,0.12)";
@@ -86,7 +95,15 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
       for (let x = 20; x < c.width; x += 20) {
         ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill();
       }
+    // Restore previous drawing if exists
+    if (snapshotRef.current && initializedRef.current) {
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height);
+      img.src = snapshotRef.current;
+    }
+    initializedRef.current = true;
   }, []);
+
   useEffect(() => { initCanvas(); }, [initCanvas, canvasWH]);
 
   const drawStroke = useCallback((
@@ -182,6 +199,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   };
 
   const clearCanvas = () => {
+    snapshotRef.current = null;
     initCanvas();
     const c = canvasRef.current;
     if (c) saveRef.current(c.toDataURL());
@@ -228,13 +246,11 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
         background: "#5BC8F5", overflow: "hidden", padding: "8px",
         gap: "8px",
       }}>
-        {/* Canvas wrapper */}
         <div style={{
           position: "relative",
           background: "#1A1A1A", borderRadius: "12px",
           padding: "4px", boxShadow: "6px 6px 0 #1A1A1A",
-          lineHeight: 0,
-          flexShrink: 1,
+          lineHeight: 0, flexShrink: 1,
         }}>
           <canvas
             ref={canvasRef}
@@ -278,7 +294,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
           )}
         </div>
 
-        {/* Bottom bar — always visible */}
+        {/* Bottom bar */}
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, flexWrap: "wrap", justifyContent: "center" }}>
           {!camEnabled && (
             <div style={{
