@@ -39,7 +39,6 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   const lastPosRef   = useRef<{ x: number; y: number } | null>(null);
   const isDrawingRef = useRef(false);
   const lastTouchPos = useRef({ x: 0, y: 0 });
-  // snapshot of drawing content to restore after resize
   const snapshotRef  = useRef<string | null>(null);
   const initializedRef = useRef(false);
 
@@ -47,6 +46,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   const [brushSize,  setBrushSize]  = useState(1);
   const [camEnabled, setCamEnabled] = useState(false);
   const [canvasWH,   setCanvasWH]   = useState({ w: 300, h: 300 });
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const colorRef   = useRef(color);
   const brushRef   = useRef(brushSize);
@@ -57,6 +57,12 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   useEffect(() => { camRef.current    = camEnabled; },    [camEnabled]);
   useEffect(() => { saveRef.current   = onSaveDrawing; }, [onSaveDrawing]);
 
+  // Detect touch device
+  useEffect(() => {
+    const isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+    setIsTouchDevice(isTouch);
+  }, []);
+
   const videoRefForHook = camEnabled ? videoRef : { current: null };
   const { fingerPos, isPinching, status } = useHandTracking(
     videoRefForHook as React.RefObject<HTMLVideoElement | null>
@@ -66,13 +72,10 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
     const measure = () => {
       const el = wrapRef.current;
       if (!el) return;
-
-      // Save current drawing before resize
       const c = canvasRef.current;
       if (c && initializedRef.current) {
         snapshotRef.current = c.toDataURL();
       }
-
       const maxH = Math.max(el.clientHeight - 60, 80);
       const maxW = Math.max(el.clientWidth - 16, 80);
       const side = Math.min(maxW, maxH);
@@ -87,7 +90,6 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
   const initCanvas = useCallback(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d"); if (!ctx) return;
-    // Draw background
     ctx.fillStyle = "#FFFBF2";
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "rgba(100,100,100,0.12)";
@@ -95,7 +97,6 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
       for (let x = 20; x < c.width; x += 20) {
         ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill();
       }
-    // Restore previous drawing if exists
     if (snapshotRef.current && initializedRef.current) {
       const img = new Image();
       img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height);
@@ -205,36 +206,46 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
     if (c) saveRef.current(c.toDataURL());
   };
 
+  // Sidebar width: compact on mobile
+  const sideW = isTouchDevice ? 52 : 64;
+  const rightW = isTouchDevice ? 56 : 72;
+
   return (
     <div style={{ flex: 1, display: "flex", overflow: "hidden", fontFamily: "'Chewy',cursive" }}>
 
       {/* Left sidebar */}
       <div style={{
-        width: "64px", flexShrink: 0,
+        width: `${sideW}px`, flexShrink: 0,
         background: "#FFE033", borderRight: "3px solid #1A1A1A",
         display: "flex", flexDirection: "column", alignItems: "center",
-        gap: "8px", padding: "10px 0", overflowY: "auto",
+        gap: isTouchDevice ? "6px" : "8px", padding: "10px 0", overflowY: "auto",
       }}>
         <span style={{ fontSize: "0.6rem", color: "#1A1A1A" }}>SIZE</span>
         {BRUSH_SIZES.map((b, i) => (
           <button key={b.label} onClick={() => setBrushSize(i)} style={{
-            width: `${16 + i * 8}px`, height: `${16 + i * 8}px`, borderRadius: "50%",
+            width: `${(isTouchDevice ? 14 : 16) + i * 8}px`,
+            height: `${(isTouchDevice ? 14 : 16) + i * 8}px`,
+            borderRadius: "50%",
             background: brushSize === i ? color : "#FFFBF2",
             border: "3px solid #1A1A1A", cursor: "pointer",
             boxShadow: brushSize === i ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
             transform: brushSize === i ? "translate(1px,1px)" : "none",
+            touchAction: "manipulation",
           }} />
         ))}
         <div style={{ width: "44px", height: "3px", background: "#1A1A1A", borderRadius: "2px" }} />
         <span style={{ fontSize: "0.6rem", color: "#1A1A1A" }}>COLOR</span>
         {CRAYON_COLORS.map(c => (
           <button key={c.color} title={c.name} onClick={() => setColor(c.color)} style={{
-            width: "32px", height: "32px", borderRadius: "50%",
+            width: isTouchDevice ? "28px" : "32px",
+            height: isTouchDevice ? "28px" : "32px",
+            borderRadius: "50%",
             background: c.color,
             border: color === c.color ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
             cursor: "pointer",
             boxShadow: color === c.color ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
             transform: color === c.color ? "translate(1px,1px) scale(1.1)" : "none",
+            touchAction: "manipulation",
           }} />
         ))}
       </div>
@@ -296,13 +307,14 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
 
         {/* Bottom bar */}
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0, flexWrap: "wrap", justifyContent: "center" }}>
+          {/* Show mode badge — finger on touch, mouse on desktop */}
           {!camEnabled && (
             <div style={{
               background: "#FFE033", border: "3px solid #1A1A1A",
               borderRadius: "50px", padding: "4px 14px", boxShadow: "3px 3px 0 #1A1A1A",
             }}>
               <span style={{ fontSize: "0.78rem", color: "#1A1A1A", fontFamily: "'Chewy'" }}>
-                🖥️ Mouse mode
+                {isTouchDevice ? "👆 Draw with your finger!" : "🖥️ Mouse mode"}
               </span>
             </div>
           )}
@@ -312,6 +324,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
               background: "#B8E04A", border: "3px solid #1A1A1A",
               cursor: "pointer", fontFamily: "'Chewy'", fontSize: "0.82rem",
               color: "#1A1A1A", boxShadow: "3px 3px 0 #1A1A1A", flexShrink: 0,
+              touchAction: "manipulation",
             }}>
               🎵 Listen!
             </button>
@@ -321,39 +334,48 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
 
       {/* Right sidebar */}
       <div style={{
-        width: "72px", flexShrink: 0,
+        width: `${rightW}px`, flexShrink: 0,
         background: "#B8E04A", borderLeft: "3px solid #1A1A1A",
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center", gap: "12px", padding: "12px 0",
       }}>
         <div style={{
-          width: "40px", height: "40px", borderRadius: "50%",
+          width: isTouchDevice ? "32px" : "40px",
+          height: isTouchDevice ? "32px" : "40px",
+          borderRadius: "50%",
           background: color, border: "3px solid #1A1A1A", boxShadow: "3px 3px 0 #1A1A1A",
         }} />
         <span style={{ fontSize: "0.6rem", color: "#1A1A1A", fontFamily: "'Chewy'" }}>color</span>
         <div style={{ width: "52px", height: "3px", background: "#1A1A1A" }} />
 
         <button onClick={clearCanvas} style={{
-          width: "52px", height: "52px", borderRadius: "50%",
+          width: isTouchDevice ? "44px" : "52px",
+          height: isTouchDevice ? "44px" : "52px",
+          borderRadius: "50%",
           background: "#FF6B8A", border: "3px solid #1A1A1A", cursor: "pointer",
           fontFamily: "'Chewy'", fontSize: "0.65rem", color: "#1A1A1A",
           boxShadow: "3px 3px 0 #1A1A1A",
           display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "2px",
+          touchAction: "manipulation",
         }}>
-          <span style={{ fontSize: "1.1rem" }}>🗑️</span><span>Reset</span>
+          <span style={{ fontSize: "1.1rem" }}>🗑️</span>
+          {!isTouchDevice && <span>Reset</span>}
         </button>
 
         <button onClick={() => setCamEnabled(v => !v)} style={{
-          width: "52px", height: "52px", borderRadius: "50%",
+          width: isTouchDevice ? "44px" : "52px",
+          height: isTouchDevice ? "44px" : "52px",
+          borderRadius: "50%",
           background: camEnabled ? "#FFE033" : "#5BC8F5",
           border: camEnabled ? "4px solid #1A1A1A" : "3px solid #1A1A1A",
           cursor: "pointer", fontFamily: "'Chewy'", fontSize: "0.65rem", color: "#1A1A1A",
           boxShadow: camEnabled ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A",
           transform: camEnabled ? "translate(1px,1px)" : "none",
           display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "2px",
+          touchAction: "manipulation",
         }}>
           <span style={{ fontSize: "1.1rem" }}>📷</span>
-          <span>{camEnabled ? "Cam ON" : "Cam"}</span>
+          {!isTouchDevice && <span>{camEnabled ? "Cam ON" : "Cam"}</span>}
         </button>
       </div>
     </div>
