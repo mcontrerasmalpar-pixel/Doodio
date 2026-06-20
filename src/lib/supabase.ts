@@ -14,7 +14,7 @@ export async function getClient() {
   return _supabase;
 }
 
-// ── Auth ───────────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────
 export interface AuthResult {
   user:  import("@supabase/supabase-js").User | null;
   error: string | null;
@@ -25,8 +25,7 @@ export async function signUp(email: string, password: string, username: string):
     const sb = await getClient();
     if (!sb) return { user: null, error: "Sin conexión" };
     const { data, error } = await sb.auth.signUp({
-      email,
-      password,
+      email, password,
       options: { data: { username } },
     });
     if (error) return { user: null, error: error.message };
@@ -60,7 +59,7 @@ export async function getSession() {
   return data.session;
 }
 
-// ── Pets ──────────────────────────────────────────────────────────
+// ── Pets ────────────────────────────────────────────────────
 export type AnimalType = "cat" | "dog" | "bird" | "frog" | "rabbit" | "hamster";
 
 export interface Pet {
@@ -112,5 +111,84 @@ export async function fetchPets(): Promise<Pet[]> {
     const { data, error } = await sb.from("pets").select("*").order("created_at", { ascending: false }).limit(20);
     if (error) { console.error("fetchPets error:", error); return []; }
     return (data ?? []) as Pet[];
+  } catch { return []; }
+}
+
+// ── Daily Doodles ───────────────────────────────────────────────
+// Run this SQL once in Supabase dashboard to create the table:
+//
+//   create table daily_doodles (
+//     id          uuid primary key default gen_random_uuid(),
+//     day         text not null,          -- e.g. "2026-06-20"
+//     prompt      text not null,
+//     owner_name  text not null,
+//     drawing_url text,
+//     melody_json jsonb,
+//     created_at  timestamptz default now()
+//   );
+//   alter table daily_doodles enable row level security;
+//   create policy "Public read" on daily_doodles for select using (true);
+//   create policy "Anyone insert" on daily_doodles for insert with check (true);
+
+export interface DailyDoodle {
+  id:          string;
+  day:         string;
+  prompt:      string;
+  owner_name:  string;
+  drawing_url: string | null;
+  melody_json: unknown | null;
+  created_at:  string;
+}
+
+export async function saveDailyDoodle(doodle: {
+  day: string;
+  prompt: string;
+  owner_name: string;
+  drawing_url: string | null;
+  melody_json: unknown | null;
+}): Promise<DailyDoodle | null> {
+  try {
+    const sb = await getClient();
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from("daily_doodles")
+      .insert([doodle])
+      .select()
+      .single();
+    if (error) { console.error("saveDailyDoodle error:", error); return null; }
+    return data as DailyDoodle;
+  } catch (e) {
+    console.error("saveDailyDoodle failed:", e); return null;
+  }
+}
+
+export async function fetchDailyDoodle(id: string): Promise<DailyDoodle | null> {
+  try {
+    const sb = await getClient();
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from("daily_doodles")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) { console.error("fetchDailyDoodle error:", error); return null; }
+    return data as DailyDoodle;
+  } catch (e) {
+    console.error("fetchDailyDoodle failed:", e); return null;
+  }
+}
+
+export async function fetchDailyDoodlesByDay(day: string): Promise<DailyDoodle[]> {
+  try {
+    const sb = await getClient();
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("daily_doodles")
+      .select("*")
+      .eq("day", day)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) { console.error("fetchDailyDoodlesByDay error:", error); return []; }
+    return (data ?? []) as DailyDoodle[];
   } catch { return []; }
 }
