@@ -1,48 +1,26 @@
 import { useState } from "react";
-import { signIn, signUp } from "../../lib/supabase";
 
 interface LoginScreenProps {
   onLogin: (username: string) => void;
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [email,      setEmail]      = useState("");
-  const [username,   setUsername]   = useState("");
-  const [password,   setPassword]   = useState("");
-  const [isRegister, setIsRegister] = useState(false);
-  const [loading,    setLoading]    = useState(false);
-  const [error,      setError]      = useState<string | null>(null);
+  const [username, setUsername] = useState("");
+  const [error, setError]       = useState<string | null>(null);
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 14px",
-    borderRadius: "14px", border: "3px solid #1A1A1A",
-    background: "#FFFBF2", fontFamily: "'Chewy', cursive",
-    fontSize: "1rem", color: "#1A1A1A", outline: "none",
-    boxSizing: "border-box", boxShadow: "2px 2px 0 #1A1A1A",
+  const handleSubmit = () => {
+    const name = username.trim();
+    if (!name) { setError("Enter your name first! 🤔"); return; }
+    onLogin(name);
   };
 
-  const handleSubmit = async () => {
-    setError(null);
-    if (!email || !password) { setError("Please fill in email and password 😢"); return; }
-    if (isRegister && !username) { setError("Please enter a username 🧐"); return; }
-    setLoading(true);
-    try {
-      if (isRegister) {
-        const { user, error: err } = await signUp(email, password, username);
-        if (err) { setError(err); return; }
-        if (user) onLogin(username || email.split("@")[0]);
-        else setError("Check your email to confirm your account 📧");
-      } else {
-        const { user, error: err } = await signIn(email, password);
-        if (err) { setError(err); return; }
-        if (user) {
-          const name = (user.user_metadata?.username as string) || email.split("@")[0];
-          onLogin(name);
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "12px 16px",
+    borderRadius: "14px", border: "3px solid #1A1A1A",
+    background: "#FFFBF2", fontFamily: "'Chewy', cursive",
+    fontSize: "1.1rem", color: "#1A1A1A", outline: "none",
+    boxSizing: "border-box", boxShadow: "2px 2px 0 #1A1A1A",
+    textAlign: "center",
   };
 
   return (
@@ -83,9 +61,9 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         borderRadius: "60% 40% 55% 45% / 45% 55% 40% 60%",
         border: "4px solid #1A1A1A",
         padding: "44px 40px 40px",
-        width: "360px",
+        width: "320px",
         boxShadow: "6px 6px 0 #1A1A1A",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: "14px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: "16px",
         position: "relative", zIndex: 2,
       }}>
         <div style={{
@@ -96,36 +74,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         }}>🎨</div>
 
         <div style={{ textAlign: "center" }}>
-          <h1 style={{ margin: 0, fontSize: "1.9rem", color: "#1A1A1A", fontFamily: "'Chewy', cursive", letterSpacing: "1px" }}>
+          <h1 style={{ margin: 0, fontSize: "2rem", color: "#1A1A1A", fontFamily: "'Chewy', cursive", letterSpacing: "1px" }}>
             Doodio
           </h1>
           <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "#5A3A00", fontFamily: "'Chewy', cursive" }}>
-            {isRegister ? "Create your account! 🌟" : "Doodle it. Hear it. 👋"}
+            Doodle it. Hear it. 👋
           </p>
         </div>
 
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "10px" }}>
-          <input
-            style={inputStyle} placeholder="📧 email"
-            type="email" value={email}
-            onChange={e => { setEmail(e.target.value); setError(null); }}
-            onKeyDown={e => e.key === "Enter" && handleSubmit()}
-          />
-          {isRegister && (
-            <input
-              style={inputStyle} placeholder="👤 username"
-              value={username}
-              onChange={e => { setUsername(e.target.value); setError(null); }}
-              onKeyDown={e => e.key === "Enter" && handleSubmit()}
-            />
-          )}
-          <input
-            style={inputStyle} type="password" placeholder="🔑 password"
-            value={password}
-            onChange={e => { setPassword(e.target.value); setError(null); }}
-            onKeyDown={e => e.key === "Enter" && handleSubmit()}
-          />
-        </div>
+        <input
+          style={inputStyle}
+          placeholder="Your name..."
+          value={username}
+          maxLength={20}
+          onChange={e => { setUsername(e.target.value); setError(null); }}
+          onKeyDown={e => e.key === "Enter" && handleSubmit()}
+          autoFocus
+        />
 
         {error && (
           <div style={{
@@ -133,37 +98,25 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             background: "#FF6B8A", border: "3px solid #1A1A1A",
             borderRadius: "12px", boxShadow: "2px 2px 0 #1A1A1A",
             fontSize: "0.85rem", color: "#1A1A1A", textAlign: "center",
-          }}>❌ {error}</div>
+          }}>{❌} {error}</div>
         )}
 
         <button
           onClick={handleSubmit}
-          disabled={loading}
           style={{
-            width: "100%", padding: "12px", borderRadius: "50px",
-            background: loading ? "#CCC" : "#FF8C42",
+            width: "100%", padding: "13px", borderRadius: "50px",
+            background: "#FF8C42",
             border: "3px solid #1A1A1A", color: "#1A1A1A",
-            fontFamily: "'Chewy', cursive", fontSize: "1.15rem",
-            cursor: loading ? "not-allowed" : "pointer",
-            boxShadow: loading ? "none" : "4px 4px 0 #1A1A1A",
+            fontFamily: "'Chewy', cursive", fontSize: "1.2rem",
+            cursor: "pointer",
+            boxShadow: "4px 4px 0 #1A1A1A",
             transition: "all 0.1s",
+            touchAction: "manipulation",
           }}
-          onMouseDown={e => { if (!loading) { e.currentTarget.style.transform = "translate(2px,2px)"; e.currentTarget.style.boxShadow = "2px 2px 0 #1A1A1A"; }}}
-          onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = loading ? "none" : "4px 4px 0 #1A1A1A"; }}
+          onMouseDown={e => { e.currentTarget.style.transform = "translate(2px,2px)"; e.currentTarget.style.boxShadow = "2px 2px 0 #1A1A1A"; }}
+          onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0 #1A1A1A"; }}
         >
-          {loading ? "⏳ Loading..." : isRegister ? "Create account! 🎉" : "Let's go! 🎨"}
-        </button>
-
-        <button
-          onClick={() => { setIsRegister(!isRegister); setError(null); }}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            fontFamily: "'Chewy', cursive", fontSize: "0.9rem",
-            color: "#5A3A00", textDecoration: "underline dotted",
-            textUnderlineOffset: "3px",
-          }}
-        >
-          {isRegister ? "I already have an account →" : "First time? Sign up →"}
+          Let’s go! 🎨
         </button>
       </div>
     </div>
