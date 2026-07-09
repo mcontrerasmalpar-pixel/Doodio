@@ -8,12 +8,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState("");
   const [error, setError]       = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    const name = username.trim();
-    if (!name) { setError("Enter your name first! 🤔"); return; }
-    onLogin(name);
-  };
-
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "12px 16px",
     borderRadius: "14px", border: "3px solid #1A1A1A",
@@ -21,6 +15,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     fontSize: "1.1rem", color: "#1A1A1A", outline: "none",
     boxSizing: "border-box", boxShadow: "2px 2px 0 #1A1A1A",
     textAlign: "center",
+  };
+
+  const handleSubmit = () => {
+    const name = username.trim();
+    if (!name) { setError("Enter your name first! 🤔"); return; }
+    onLogin(name);
   };
 
   return (
@@ -31,7 +31,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       fontFamily: "'Chewy', cursive",
       position: "relative", overflow: "hidden",
     }}>
-      {/* Floating bg elements */}
       {[
         { e: "🎵", top: "8%",  left: "8%",  size: "2rem",   rot: "15deg",  op: 0.5 },
         { e: "🎨", top: "12%", left: "82%", size: "1.8rem", rot: "-12deg", op: 0.45 },
@@ -48,14 +47,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         }}>{d.e}</span>
       ))}
 
-      {/* Green hill */}
       <div style={{
         position: "absolute", bottom: 0, left: 0, right: 0, height: "80px",
         background: "#B8E04A", borderTop: "3px solid #1A1A1A",
         borderRadius: "60% 60% 0 0 / 30px 30px 0 0",
       }} />
 
-      {/* Card */}
       <div style={{
         background: "#FFE033",
         borderRadius: "60% 40% 55% 45% / 45% 55% 40% 60%",
@@ -98,7 +95,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             background: "#FF6B8A", border: "3px solid #1A1A1A",
             borderRadius: "12px", boxShadow: "2px 2px 0 #1A1A1A",
             fontSize: "0.85rem", color: "#1A1A1A", textAlign: "center",
-          }}>{❌} {error}</div>
+          }}>❌ {error}</div>
         )}
 
         <button
