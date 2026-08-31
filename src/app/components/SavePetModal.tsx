@@ -1,13 +1,13 @@
 import { useState } from "react";
 import type { AnimalType } from "../../lib/supabase";
 
-const DOODLE_TYPES: { type: AnimalType; emoji: string; label: string }[] = [
-  { type: "cat",     emoji: "🐱", label: "Cat"    },
-  { type: "dog",     emoji: "🐶", label: "Dog"   },
-  { type: "bird",    emoji: "🐦", label: "Bird"  },
-  { type: "frog",    emoji: "🌱", label: "Tree"   },
-  { type: "rabbit",  emoji: "🏠", label: "House"    },
-  { type: "hamster", emoji: "⭐", label: "Star" },
+const DOODLE_TYPES: { type: AnimalType; label: string }[] = [
+  { type: "cat", label: "Cat" },
+  { type: "dog", label: "Dog" },
+  { type: "bird", label: "Bird" },
+  { type: "frog", label: "Tree" },
+  { type: "rabbit", label: "House" },
+  { type: "hamster", label: "Star" },
 ];
 
 interface SavePetModalProps {
@@ -19,7 +19,7 @@ interface SavePetModalProps {
 }
 
 export function SavePetModal({ drawingDataUrl, ownerName, onSave, onClose, saving }: SavePetModalProps) {
-  const [name,   setName]   = useState("");
+  const [name, setName] = useState("");
   const [animal, setAnimal] = useState<AnimalType>("cat");
 
   return (
@@ -38,7 +38,7 @@ export function SavePetModal({ drawingDataUrl, ownerName, onSave, onClose, savin
         display: "flex", flexDirection: "column", gap: "16px",
         fontFamily: "'Chewy', cursive",
       }}>
-        <h2 style={{ margin: 0, fontSize: "1.6rem", color: "#1A1A1A" }}>Save your doodle 🎨</h2>
+        <h2 style={{ margin: 0, fontSize: "1.6rem", color: "#1A1A1A" }}>Save your doodle</h2>
 
         {/* Preview */}
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -89,7 +89,7 @@ export function SavePetModal({ drawingDataUrl, ownerName, onSave, onClose, savin
                   display: "flex", alignItems: "center", gap: "5px",
                 }}
               >
-                <span>{a.emoji}</span><span>{a.label}</span>
+                <span>{a.label}</span>
               </button>
             ))}
           </div>
@@ -122,7 +122,7 @@ export function SavePetModal({ drawingDataUrl, ownerName, onSave, onClose, savin
               display: "flex", alignItems: "center", gap: "6px",
             }}
           >
-            {saving ? "⏳ Saving..." : "✅ Save"}
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
