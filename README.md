@@ -111,6 +111,91 @@ src/
 
 ---
 
+## Database schema (Supabase)
+
+Source of truth in this repo is [`src/lib/supabase.ts`](src/lib/supabase.ts). There is **no** `supabase/migrations` folder. `daily_doodles` SQL is the comment in that file. `pets` columns and Storage/RLS behavior are what the **client actually calls** — confirm against the live dashboard if they ever drift.
+
+Auth is email/password. `username` goes in `user_metadata`, not a `profiles` table. Gallery rows do **not** store `auth.uid()`; they store `owner_name` as text.
+
+### `pets`
+
+Used by `savePet` / `fetchPets` (`select * order by created_at desc limit 20`).
+
+| Column | Client type | Notes |
+|---|---|---|
+| `id` | `string` | returned on insert |
+| `name` | `string` | doodle name |
+| `animal_type` | `cat \| dog \| bird \| frog \| rabbit \| hamster` | |
+| `owner_name` | `string` | not a foreign key |
+| `drawing_url` | `string \| null` | public URL from Storage |
+| `melody_json` | `unknown \| null` | Sound Profile JSON |
+| `created_at` | `string` | |
+
+Client ops: anon `SELECT`, anon `INSERT`. No update/delete from the app.
+
+SQL is not in the repo. The live gallery only works if RLS matches this (public read + anyone insert; no update/delete policies):
+
+```sql
+alter table pets enable row level security;
+create policy "Public read" on pets for select using (true);
+create policy "Anyone insert" on pets for insert with check (true);
+```
+
+### `daily_doodles`
+
+Copied from the client comment. Run once in the Supabase SQL editor:
+
+```sql
+create table daily_doodles (
+  id          uuid primary key default gen_random_uuid(),
+  day         text not null,          -- e.g. "2026-06-20"
+  prompt      text not null,
+  owner_name  text not null,
+  drawing_url text,
+  melody_json jsonb,
+  created_at  timestamptz default now()
+);
+alter table daily_doodles enable row level security;
+create policy "Public read" on daily_doodles for select using (true);
+create policy "Anyone insert" on daily_doodles for insert with check (true);
+```
+
+No update/delete policies → those operations stay denied under RLS.
+
+### Storage bucket `drawings`
+
+`uploadDrawing` puts a PNG at `{timestamp}-{slug(name)}.png` (bucket root, no `user_id/` prefix) with `upsert: true`, then `getPublicUrl`. The bucket must be **public**.
+
+Policies the client needs (not checked in; create in the dashboard if missing):
+
+```sql
+insert into storage.buckets (id, name, public)
+values ('drawings', 'drawings', true)
+on conflict (id) do update set public = true;
+
+create policy "Public read drawings"
+  on storage.objects for select
+  using (bucket_id = 'drawings');
+
+create policy "Public upload drawings"
+  on storage.objects for insert
+  with check (bucket_id = 'drawings');
+
+create policy "Public update drawings"
+  on storage.objects for update
+  using (bucket_id = 'drawings')
+  with check (bucket_id = 'drawings');
+```
+
+`upsert: true` is why UPDATE is required, not only INSERT.
+
+### Not in this schema
+
+- No `user_id` on `pets` / `daily_doodles` (auth is not bound to rows).
+- No embeddings / pgvector. Similarity search is [#1](https://github.com/mcontrerasmalpar-pixel/Doodio/issues/1).
+
+---
+
 ## 💛 Made with
 
 This project was built with love, a lot of bad drawings, and the belief that imperfection is where creativity actually lives.
