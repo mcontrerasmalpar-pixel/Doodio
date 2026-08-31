@@ -97,12 +97,12 @@ src/
 │       ├── VoiceMode.tsx          # Voice recording + layering
 │       ├── ExperimentMode.tsx     # Experiment tab
 │       ├── PetProfile.tsx         # Saved doodle view
-│       ├── SavePetModal.tsx       # Save modal
+│       ├── SavePetModal.tsx       # Save doodle modal
 │       ├── LoginScreen.tsx        # Login / register screen
 │       └── TomodachiLogin.tsx     # Animated login screen
 ├── hooks/
 │   ├── useDrawSound.ts            # Drawing analysis → Sound Profile
-│   ├── usePetRecorder.ts          # MediaRecorder → voice
+│   ├── usePetRecorder.ts          # Voice recorder
 │   └── useRemix.ts                # Layering voice + melody
 └── lib/
     ├── supabase.ts                # Auth + DB + Storage
@@ -113,37 +113,40 @@ src/
 
 ## Database schema (Supabase)
 
-Source of truth in this repo is [`src/lib/supabase.ts`](src/lib/supabase.ts). There is **no** `supabase/migrations` folder. `daily_doodles` SQL is the comment in that file. `pets` columns and Storage/RLS behavior are what the **client actually calls** — confirm against the live dashboard if they ever drift.
+Doodio stores **doodles**: a drawing (`drawing_url`) plus the Sound Profile that turns it into music (`melody_json`). This is not a pets app.
+
+Source of truth in this repo is [`src/lib/supabase.ts`](src/lib/supabase.ts). There is **no** `supabase/migrations` folder. Confirm against the live dashboard if policies ever drift.
 
 Auth is email/password. `username` goes in `user_metadata`, not a `profiles` table. Gallery rows do **not** store `auth.uid()`; they store `owner_name` as text.
 
-### `pets`
+### Gallery doodles
 
-Used by `savePet` / `fetchPets` (`select * order by created_at desc limit 20`).
+Shared gallery: latest 20 doodles by `created_at` desc. The client still queries `.from("pets")` — leftover table identifier from the Figma Make prototype. **Rows are doodles.** Use that identifier only when writing SQL until it is renamed.
 
-| Column | Client type | Notes |
+| Column | Client type | What it is |
 |---|---|---|
-| `id` | `string` | returned on insert |
+| `id` | `string` | doodle id (returned on insert) |
 | `name` | `string` | doodle name |
-| `animal_type` | `cat \| dog \| bird \| frog \| rabbit \| hamster` | |
-| `owner_name` | `string` | not a foreign key |
-| `drawing_url` | `string \| null` | public URL from Storage |
+| `animal_type` | `cat \| dog \| bird \| frog \| rabbit \| hamster` | doodle tag (prototype enum; UI labels include Tree / House / Star) |
+| `owner_name` | `string` | display name, not a foreign key |
+| `drawing_url` | `string \| null` | public URL of the PNG in Storage |
 | `melody_json` | `unknown \| null` | Sound Profile JSON |
 | `created_at` | `string` | |
 
 Client ops: anon `SELECT`, anon `INSERT`. No update/delete from the app.
 
-SQL is not in the repo. The live gallery only works if RLS matches this (public read + anyone insert; no update/delete policies):
+RLS the live gallery needs (public read + anyone insert; no update/delete policies):
 
 ```sql
+-- leftover table name; rows are doodles
 alter table pets enable row level security;
-create policy "Public read" on pets for select using (true);
-create policy "Anyone insert" on pets for insert with check (true);
+create policy "Public read doodles" on pets for select using (true);
+create policy "Anyone insert doodle" on pets for insert with check (true);
 ```
 
-### `daily_doodles`
+### Daily doodles (`daily_doodles`)
 
-Copied from the client comment. Run once in the Supabase SQL editor:
+Prompt-of-the-day submissions. SQL from the client comment; run once in the Supabase SQL editor:
 
 ```sql
 create table daily_doodles (
@@ -191,8 +194,8 @@ create policy "Public update drawings"
 
 ### Not in this schema
 
-- No `user_id` on `pets` / `daily_doodles` (auth is not bound to rows).
-- No embeddings / pgvector. Similarity search is [#1](https://github.com/mcontrerasmalpar-pixel/Doodio/issues/1).
+- No `user_id` on gallery or daily doodles (auth is not bound to rows).
+- No embeddings / pgvector. Similarity search for doodles similares is [#1](https://github.com/mcontrerasmalpar-pixel/Doodio/issues/1).
 
 ---
 
