@@ -20,7 +20,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
           justifyContent: 'center', height: '100vh', gap: '16px',
           fontFamily: "'Chewy', cursive", background: '#FFE033', padding: '24px',
         }}>
-          <div style={{ fontSize: '3rem' }}>🚫</div>
           <h1 style={{ fontSize: '1.6rem', color: '#1A1A1A', margin: 0 }}>Algo salió mal</h1>
           <pre style={{
             background: '#1A1A1A', color: '#FFE033', padding: '16px',
@@ -35,7 +34,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
               fontFamily: "'Chewy', cursive", fontSize: '1rem',
               cursor: 'pointer', boxShadow: '3px 3px 0 #1A1A1A',
             }}
-          >Reintentar 🔄</button>
+          >Reintentar</button>
         </div>
       )
     }
