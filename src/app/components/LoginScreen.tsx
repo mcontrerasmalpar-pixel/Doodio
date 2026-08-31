@@ -6,7 +6,7 @@ interface LoginScreenProps {
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState("");
-  const [error, setError]       = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "12px 16px",
@@ -19,7 +19,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
   const handleSubmit = () => {
     const name = username.trim();
-    if (!name) { setError("Enter your name first! 🤔"); return; }
+    if (!name) { setError("Enter your name first!"); return; }
     onLogin(name);
   };
 
@@ -32,14 +32,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       position: "relative", overflow: "hidden",
     }}>
       {[
-        { e: "🎵", top: "8%",  left: "8%",  size: "2rem",   rot: "15deg",  op: 0.5 },
-        { e: "🎨", top: "12%", left: "82%", size: "1.8rem", rot: "-12deg", op: 0.45 },
-        { e: "✶",  top: "6%",  left: "50%", size: "1.5rem", rot: "20deg",  op: 0.4 },
-        { e: "🎶", top: "78%", left: "85%", size: "1.6rem", rot: "-15deg", op: 0.4 },
-        { e: "⭐", top: "82%", left: "10%", size: "1.4rem", rot: "8deg",   op: 0.45 },
-        { e: "✏️", top: "65%", left: "4%",  size: "1.2rem", rot: "12deg",  op: 0.35 },
-        { e: "🎶", top: "25%", left: "90%", size: "1.4rem", rot: "-8deg",  op: 0.4 },
-        { e: "✶",  top: "70%", left: "92%", size: "1rem",   rot: "25deg",  op: 0.35 },
+        { e: "✶", top: "6%", left: "50%", size: "1.5rem", rot: "20deg", op: 0.4 },
+        { e: "✶", top: "70%", left: "92%", size: "1rem", rot: "25deg", op: 0.35 },
       ].map((d, i) => (
         <span key={i} style={{
           position: "absolute", fontSize: d.size, top: d.top, left: d.left,
@@ -68,14 +62,14 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           background: "#FF8C42", border: "4px solid #1A1A1A",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: "2rem", boxShadow: "3px 3px 0 #1A1A1A", marginBottom: "4px",
-        }}>🎨</div>
+        }}>D</div>
 
         <div style={{ textAlign: "center" }}>
           <h1 style={{ margin: 0, fontSize: "2rem", color: "#1A1A1A", fontFamily: "'Chewy', cursive", letterSpacing: "1px" }}>
             Doodio
           </h1>
           <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "#5A3A00", fontFamily: "'Chewy', cursive" }}>
-            Doodle it. Hear it. 👋
+            Doodle it. Hear it.
           </p>
         </div>
 
@@ -95,7 +89,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             background: "#FF6B8A", border: "3px solid #1A1A1A",
             borderRadius: "12px", boxShadow: "2px 2px 0 #1A1A1A",
             fontSize: "0.85rem", color: "#1A1A1A", textAlign: "center",
-          }}>❌ {error}</div>
+          }}>{error}</div>
         )}
 
         <button
@@ -113,7 +107,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           onMouseDown={e => { e.currentTarget.style.transform = "translate(2px,2px)"; e.currentTarget.style.boxShadow = "2px 2px 0 #1A1A1A"; }}
           onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0 #1A1A1A"; }}
         >
-          Let’s go! 🎨
+          Let’s go!
         </button>
       </div>
     </div>

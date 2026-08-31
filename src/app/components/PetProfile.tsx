@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchPets, type Pet, type AnimalType } from "../../lib/supabase";
+import { fetchPets, type Pet } from "../../lib/supabase";
 import type { MelodyNote } from "./PlayMode";
-
-const ANIMAL_EMOJI: Record<AnimalType, string> = {
-  cat:     "🐱",
-  dog:     "🐶",
-  bird:    "🐦",
-  frog:    "🌱",
-  rabbit:  "🏠",
-  hamster: "⭐",
-};
 
 const CARD_COLORS = [
   "#FF6B8A", "#FFE033", "#B8E04A", "#5BC8F5", "#C06BDB", "#FF8C42",
@@ -60,8 +51,8 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
           }}>
             {currentPet.drawing_url
               ? <img src={currentPet.drawing_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-              : <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", fontSize:"3rem" }}>
-                  {ANIMAL_EMOJI[currentPet.animal_type] ?? "🎨"}
+              : <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", fontSize:"0.9rem", color:"#555" }}>
+                  Doodle
                 </div>
             }
           </div>
@@ -69,12 +60,11 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
           {/* Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "2rem" }}>{ANIMAL_EMOJI[currentPet.animal_type] ?? "🎨"}</span>
               <span style={{ fontSize: "1.8rem", color: "#1A1A1A" }}>{currentPet.name}</span>
             </div>
             <span style={{ fontSize: "0.9rem", color: "#5A3A00" }}>de {currentPet.owner_name}</span>
             <span style={{ fontSize: "0.8rem", color: "#888" }}>
-              {melody.filter(n => !n.rest).length} notas · doodle guardado ✅
+              {melody.filter(n => !n.rest).length} notas · doodle guardado
             </span>
           </div>
 
@@ -94,7 +84,7 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
               onMouseDown={e => { e.currentTarget.style.transform = "translate(2px,2px)"; e.currentTarget.style.boxShadow = "2px 2px 0 #1A1A1A"; }}
               onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0 #1A1A1A"; }}
             >
-              {isPlaying ? "⏹" : "▶️"}
+              {isPlaying ? "Stop" : "Play"}
             </button>
           </div>
         </div>
@@ -108,15 +98,15 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
         <h2 style={{
           fontSize: "1.2rem", color: "#1A1A1A",
           margin: "0 0 12px", fontFamily: "'Chewy',cursive",
-        }}>🎨 Doodles guardados</h2>
+        }}>Doodles guardados</h2>
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#FFFBF2", fontSize: "1.1rem" }}>
-            ⏳ Cargando doodles...
+            Cargando doodles...
           </div>
         ) : allPets.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#FFFBF2", fontSize: "1rem" }}>
-            ¡Sé el primero en guardar tu doodle! 🎨
+            ¡Sé el primero en guardar tu doodle!
           </div>
         ) : (
           <div style={{
@@ -142,12 +132,12 @@ export function PetProfile({ currentPet, melody, onPlayMelody, isPlaying }: PetP
                 }}>
                   {pet.drawing_url
                     ? <img src={pet.drawing_url} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                    : <span style={{ fontSize: "2.5rem" }}>{ANIMAL_EMOJI[pet.animal_type] ?? "🎨"}</span>
+                    : <span style={{ fontSize: "0.85rem", color: "#555" }}>Doodle</span>
                   }
                 </div>
 
                 <span style={{ fontSize: "1.1rem", color: "#1A1A1A", textAlign: "center" }}>
-                  {ANIMAL_EMOJI[pet.animal_type] ?? "🎨"} {pet.name}
+                  {pet.name}
                 </span>
                 <span style={{ fontSize: "0.7rem", color: "#1A1A1A", opacity: 0.7 }}>
                   {pet.owner_name}

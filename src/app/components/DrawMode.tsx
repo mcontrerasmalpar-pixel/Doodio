@@ -2,60 +2,60 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useHandTracking } from "../../hooks/useHandTracking";
 
 const CRAYON_COLORS = [
-  { name: "Cherry",  color: "#FF6B8A" },
-  { name: "Ocean",   color: "#5BAEFF" },
-  { name: "Mint",    color: "#5FD49A" },
-  { name: "Grape",   color: "#C06BDB" },
-  { name: "Sun",     color: "#FFD06B" },
-  { name: "Coral",   color: "#FF8C6B" },
-  { name: "Teal",    color: "#5BD4D2" },
-  { name: "Dark",    color: "#3A3A3A" },
+  { name: "Cherry", color: "#FF6B8A" },
+  { name: "Ocean", color: "#5BAEFF" },
+  { name: "Mint", color: "#5FD49A" },
+  { name: "Grape", color: "#C06BDB" },
+  { name: "Sun", color: "#FFD06B" },
+  { name: "Coral", color: "#FF8C6B" },
+  { name: "Teal", color: "#5BD4D2" },
+  { name: "Dark", color: "#3A3A3A" },
 ];
 
 const BRUSH_SIZES = [
-  { label: "S", size: 6  },
+  { label: "S", size: 6 },
   { label: "M", size: 14 },
   { label: "L", size: 24 },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
-  idle:    "📷 Camera off",
-  loading: "⏳ Starting...",
-  active:  "✋ Hand detected!",
-  no_hand: "👀 Looking for hand...",
-  error:   "❌ No camera permission",
+  idle: "Camera off",
+  loading: "Starting...",
+  active: "Hand detected!",
+  no_hand: "Looking for hand...",
+  error: "No camera permission",
 };
 
 interface DrawModeProps {
   onSaveDrawing: (dataUrl: string) => void;
-  onGoToListen:  () => void;
-  hasDrawing:    boolean;
+  onGoToListen: () => void;
+  hasDrawing: boolean;
 }
 
 export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModeProps) {
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const wrapRef      = useRef<HTMLDivElement>(null);
-  const videoRef     = useRef<HTMLVideoElement>(null);
-  const lastPosRef   = useRef<{ x: number; y: number } | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastPosRef = useRef<{ x: number; y: number } | null>(null);
   const isDrawingRef = useRef(false);
   const lastTouchPos = useRef({ x: 0, y: 0 });
-  const snapshotRef  = useRef<string | null>(null);
+  const snapshotRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
 
-  const [color,      setColor]      = useState(CRAYON_COLORS[0].color);
-  const [brushSize,  setBrushSize]  = useState(1);
+  const [color, setColor] = useState(CRAYON_COLORS[0].color);
+  const [brushSize, setBrushSize] = useState(1);
   const [camEnabled, setCamEnabled] = useState(false);
-  const [canvasWH,   setCanvasWH]   = useState({ w: 300, h: 300 });
+  const [canvasWH, setCanvasWH] = useState({ w: 300, h: 300 });
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  const colorRef   = useRef(color);
-  const brushRef   = useRef(brushSize);
-  const camRef     = useRef(camEnabled);
-  const saveRef    = useRef(onSaveDrawing);
-  useEffect(() => { colorRef.current  = color; },         [color]);
-  useEffect(() => { brushRef.current  = brushSize; },     [brushSize]);
-  useEffect(() => { camRef.current    = camEnabled; },    [camEnabled]);
-  useEffect(() => { saveRef.current   = onSaveDrawing; }, [onSaveDrawing]);
+  const colorRef = useRef(color);
+  const brushRef = useRef(brushSize);
+  const camRef = useRef(camEnabled);
+  const saveRef = useRef(onSaveDrawing);
+  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { brushRef.current = brushSize; }, [brushSize]);
+  useEffect(() => { camRef.current = camEnabled; }, [camEnabled]);
+  useEffect(() => { saveRef.current = onSaveDrawing; }, [onSaveDrawing]);
 
   // Detect touch device
   useEffect(() => {
@@ -109,9 +109,9 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
 
   const drawStroke = useCallback((
     from: { x: number; y: number },
-    to:   { x: number; y: number },
-    col:  string,
-    sz:   number
+    to: { x: number; y: number },
+    col: string,
+    sz: number
   ) => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d"); if (!ctx) return;
@@ -139,8 +139,8 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
     const c = canvasRef.current; if (!c) return { x: 0, y: 0 };
     const r = c.getBoundingClientRect();
     return {
-      x: (clientX - r.left) * (c.width  / r.width),
-      y: (clientY - r.top)  * (c.height / r.height),
+      x: (clientX - r.left) * (c.width / r.width),
+      y: (clientY - r.top) * (c.height / r.height),
     };
   }, []);
 
@@ -170,12 +170,12 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
       saveRef.current(c.toDataURL());
     };
     c.addEventListener("touchstart", onTS, { passive: false });
-    c.addEventListener("touchmove",  onTM, { passive: false });
-    c.addEventListener("touchend",   onTE, { passive: false });
+    c.addEventListener("touchmove", onTM, { passive: false });
+    c.addEventListener("touchend", onTE, { passive: false });
     return () => {
       c.removeEventListener("touchstart", onTS);
-      c.removeEventListener("touchmove",  onTM);
-      c.removeEventListener("touchend",   onTE);
+      c.removeEventListener("touchmove", onTM);
+      c.removeEventListener("touchend", onTE);
     };
   }, [drawStroke, getPos]);
 
@@ -314,7 +314,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
               borderRadius: "50px", padding: "4px 14px", boxShadow: "3px 3px 0 #1A1A1A",
             }}>
               <span style={{ fontSize: "0.78rem", color: "#1A1A1A", fontFamily: "'Chewy'" }}>
-                {isTouchDevice ? "👆 Draw with your finger!" : "🖥️ Mouse mode"}
+                {isTouchDevice ? "Draw with your finger!" : "Mouse mode"}
               </span>
             </div>
           )}
@@ -326,7 +326,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
               color: "#1A1A1A", boxShadow: "3px 3px 0 #1A1A1A", flexShrink: 0,
               touchAction: "manipulation",
             }}>
-              🎵 Listen!
+              Listen!
             </button>
           )}
         </div>
@@ -358,8 +358,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
           display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "2px",
           touchAction: "manipulation",
         }}>
-          <span style={{ fontSize: "1.1rem" }}>🗑️</span>
-          {!isTouchDevice && <span>Reset</span>}
+          <span>Reset</span>
         </button>
 
         <button onClick={() => setCamEnabled(v => !v)} style={{
@@ -374,8 +373,7 @@ export function DrawMode({ onSaveDrawing, onGoToListen, hasDrawing }: DrawModePr
           display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "2px",
           touchAction: "manipulation",
         }}>
-          <span style={{ fontSize: "1.1rem" }}>📷</span>
-          {!isTouchDevice && <span>{camEnabled ? "Cam ON" : "Cam"}</span>}
+          <span>{camEnabled ? "Cam ON" : "Cam"}</span>
         </button>
       </div>
     </div>

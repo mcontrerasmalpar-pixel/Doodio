@@ -89,7 +89,7 @@ function DoodleCard({
           background: "#FF8C42", border: "2px solid #1A1A1A",
           borderRadius: 50, padding: "1px 8px",
           fontSize: "0.6rem", color: "#1A1A1A", fontFamily: "'Chewy',cursive",
-        }}>You ⭐</div>
+        }}>You</div>
       )}
 
       {/* Drawing */}
@@ -101,7 +101,7 @@ function DoodleCard({
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem" }}>🎨</div>
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", color: "#555" }}>Doodle</div>
         )}
         {/* Play overlay button */}
         <button
@@ -125,7 +125,7 @@ function DoodleCard({
             transform: isPlaying ? "scale(1.1)" : "scale(1)",
             transition: "all 0.15s",
           }}>
-            {isPlaying ? "⏸" : "▶️"}
+            {isPlaying ? "Pause" : "Play"}
           </div>
         </button>
       </div>
@@ -139,7 +139,7 @@ function DoodleCard({
           <button
             onClick={onShare}
             style={{ flexShrink: 0, padding: "2px 8px", borderRadius: 50, background: "#5BC8F5", border: "2px solid #1A1A1A", cursor: "pointer", fontFamily: "'Chewy',cursive", fontSize: "0.6rem", color: "#1A1A1A", boxShadow: "2px 2px 0 #1A1A1A", touchAction: "manipulation" }}>
-            🔗 Share
+            Share
           </button>
         )}
       </div>
@@ -148,11 +148,11 @@ function DoodleCard({
 }
 
 export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryProps) {
-  const [doodles, setDoodles]     = useState<DailyDoodle[]>([]);
-  const [loading, setLoading]     = useState(true);
+  const [doodles, setDoodles] = useState<DailyDoodle[]>([]);
+  const [loading, setLoading] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [copied, setCopied]       = useState(false);
-  const { play, stop }            = useMelodyPlayer();
+  const [copied, setCopied] = useState(false);
+  const { play, stop } = useMelodyPlayer();
 
   useEffect(() => {
     fetchDailyDoodlesByDay(day).then(data => {
@@ -178,7 +178,7 @@ export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryP
   const handleShare = (doodle: DailyDoodle) => {
     const url = `${window.location.origin}?doodle=${doodle.id}`;
     if (navigator.share) {
-      navigator.share({ title: "My Doodio!", text: `"${prompt}" — listen to my drawing 🎵`, url });
+      navigator.share({ title: "My Doodio!", text: `"${prompt}" — listen to my drawing`, url });
     } else {
       navigator.clipboard.writeText(url).catch(() => {});
       setCopied(true);
@@ -192,7 +192,7 @@ export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryP
       {/* Header */}
       <div style={{ flexShrink: 0, background: "#FF8C42", borderBottom: "3px solid #1A1A1A", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <div>
-          <div style={{ fontSize: "1rem", color: "#1A1A1A" }}>🖼️ Today's Gallery</div>
+          <div style={{ fontSize: "1rem", color: "#1A1A1A" }}>Today's Gallery</div>
           <div style={{ fontSize: "0.68rem", color: "#1A1A1A", opacity: 0.75, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             &ldquo;{prompt}&rdquo;
           </div>
@@ -214,7 +214,7 @@ export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryP
       {/* Copied toast */}
       {copied && (
         <div style={{ position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)", background: "#1A1A1A", color: "#FFF", borderRadius: 50, padding: "8px 20px", fontSize: "0.85rem", fontFamily: "'Chewy',cursive", zIndex: 100, boxShadow: "3px 3px 0 #555" }}>
-          📋 Link copied!
+          Link copied!
         </div>
       )}
 
@@ -222,12 +222,12 @@ export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryP
       <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 12 }}>
-            <span style={{ fontSize: "2rem" }}>⏳</span>
+            
             <span style={{ fontSize: "1rem", color: "#1A1A1A" }}>Loading today's doodles...</span>
           </div>
         ) : doodles.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16, padding: 24 }}>
-            <span style={{ fontSize: "3rem" }}>🎨</span>
+            
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "1.1rem", color: "#1A1A1A", marginBottom: 8 }}>Be the first today!</div>
               <div style={{ fontSize: "0.8rem", color: "#1A1A1A", opacity: 0.7 }}>No doodles yet for this prompt.<br/>Submit yours and start the gallery.</div>
@@ -256,7 +256,7 @@ export function DailyGallery({ day, prompt, myDoodleId, onClose }: DailyGalleryP
       {/* Footer hint */}
       {!loading && doodles.length > 0 && (
         <div style={{ flexShrink: 0, background: "#FFE033", borderTop: "3px solid #1A1A1A", padding: "8px", textAlign: "center", fontSize: "0.7rem", color: "#1A1A1A", opacity: 0.8 }}>
-          ▶️ Tap any doodle to hear its melody
+          Tap any doodle to hear its melody
         </div>
       )}
     </div>

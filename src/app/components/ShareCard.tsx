@@ -5,9 +5,9 @@ import type { MelodyNote } from "./PlayMode";
 
 // Shown when someone opens ?doodle=<id>
 export function ShareCard({ id }: { id: string }) {
-  const [doodle, setDoodle]   = useState<DailyDoodle | null>(null);
+  const [doodle, setDoodle] = useState<DailyDoodle | null>(null);
   const [loading, setLoading] = useState(true);
-  const [melody,  setMelody]  = useState<MelodyNote[]>([]);
+  const [melody, setMelody] = useState<MelodyNote[]>([]);
   const stopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -21,17 +21,15 @@ export function ShareCard({ id }: { id: string }) {
 
   if (loading) return (
     <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12, fontFamily:"'Chewy',cursive", background:"#5BC8F5" }}>
-      <span style={{ fontSize:"2rem" }}>⏳</span>
       <span style={{ fontSize:"1rem", color:"#1A1A1A" }}>Loading doodle...</span>
     </div>
   );
 
   if (!doodle) return (
     <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12, fontFamily:"'Chewy',cursive", background:"#5BC8F5" }}>
-      <span style={{ fontSize:"2rem" }}>🕵️</span>
       <span style={{ fontSize:"1rem", color:"#1A1A1A" }}>Doodle not found</span>
       <a href="/" style={{ padding:"8px 20px", borderRadius:"50px", background:"#B8E04A", border:"3px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow:"3px 3px 0 #1A1A1A", textDecoration:"none" }}>
-        🎨 Make yours!
+        Make yours!
       </a>
     </div>
   );
@@ -41,7 +39,7 @@ export function ShareCard({ id }: { id: string }) {
       {/* Header */}
       <div style={{ background:"#FF8C42", borderBottom:"3px solid #1A1A1A", padding:"10px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ width:30, height:30, borderRadius:"50%", background:"#FFE033", border:"3px solid #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1rem", boxShadow:"2px 2px 0 #1A1A1A" }}>🎨</div>
+          <div style={{ width:30, height:30, borderRadius:"50%", background:"#FFE033", border:"3px solid #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"1rem", boxShadow:"2px 2px 0 #1A1A1A" }}>D</div>
           <span style={{ fontSize:"1rem", color:"#1A1A1A" }}>Doodio Daily</span>
         </div>
         <span style={{ fontSize:"0.7rem", color:"#1A1A1A", opacity:0.7 }}>{doodle.day}</span>
@@ -77,7 +75,7 @@ export function ShareCard({ id }: { id: string }) {
         <a
           href={`/?prompt=1`}
           style={{ padding:"10px 20px", borderRadius:"50px", background:"#B8E04A", border:"3px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.95rem", color:"#1A1A1A", boxShadow:"4px 4px 0 #1A1A1A", textDecoration:"none", display:"flex", alignItems:"center", gap:6, touchAction:"manipulation" }}>
-          <span>🎨</span><span>Make yours!</span>
+          <span>Make yours!</span>
         </a>
       </div>
     </div>

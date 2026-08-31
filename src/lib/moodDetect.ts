@@ -3,7 +3,7 @@
  * Reads a DrawSoundProfile + animal preset and returns:
  *  - a Mood label
  *  - a generated phrase the pet would say
- *  - an emoji that matches the mood
+ *  - a short label that matches the mood
  */
 import type { DrawSoundProfile } from "../hooks/useDrawSound";
 import type { PetVoicePreset } from "../hooks/usePetVoice";
@@ -26,14 +26,14 @@ export interface MoodResult {
 }
 
 const MOOD_EMOJI: Record<Mood, string> = {
-  energetic:   "⚡",
-  happy:       "🌟",
-  calm:        "🌊",
-  melancholic: "🌧️",
-  playful:     "🎉",
-  curious:     "🔮",
-  sleepy:      "💤",
-  angry:       "🔥",
+  energetic:   "",
+  happy:       "",
+  calm:        "",
+  melancholic: "",
+  playful:     "",
+  curious:     "",
+  sleepy:      "",
+  angry:       "",
 };
 
 const MOOD_LABEL: Record<Mood, string> = {
@@ -51,7 +51,7 @@ const MOOD_LABEL: Record<Mood, string> = {
 const PHRASES: Record<PetVoicePreset, Record<Mood, string[]>> = {
   cat: {
     energetic:   ["¡Tengo mucha energía, quiero correr por toda la casa!", "¡Estoy súper activo hoy, nadie me para!", "¡Me siento poderoso, el mundo es mío!"],
-    happy:       ["Miau... estoy muy contento hoy 😸", "¡Purr purr, la vida es perfecta!", "¡Hoy es el mejor día del mundo, miau!"],
+    happy:       ["Miau... estoy muy contento hoy", "¡Purr purr, la vida es perfecta!", "¡Hoy es el mejor día del mundo, miau!"],
     calm:        ["Mmmm... me apetece tomar una siesta larga al sol.", "Estoy relajado, no me molestes por favor.", "El silencio es mi cosa favorita... miau."],
     melancholic: ["Extraño mis juguetes de cuando era pequeño...", "¿Por qué el día está tan gris hoy? Miau...", "Me siento un poco solo hoy."],
     playful:     ["¡Quiero jugar con esa pelota de lana ahora mismo!", "¡Atrapa el ratón, atrapa el ratón! ¡Miau!", "¡Vamos a jugar, por favor por favor!"],

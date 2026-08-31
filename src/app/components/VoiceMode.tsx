@@ -2,29 +2,29 @@ import { useState, useRef, useEffect } from "react";
 import { useDrawSound } from "../../hooks/useDrawSound";
 import { getMoodResult, type MoodResult } from "../../lib/moodDetect";
 
-const ANIMAL_META: Record<string, { emoji: string; label: string; bg: string }> = {
-  cat:     { emoji: "🐱", label: "Cat",     bg: "#FF6B8A" },
-  dog:     { emoji: "🐶", label: "Dog",     bg: "#FF8C42" },
-  bird:    { emoji: "🐦", label: "Bird",    bg: "#5BC8F5" },
-  frog:    { emoji: "🐸", label: "Frog",    bg: "#B8E04A" },
-  rabbit:  { emoji: "🐇", label: "Rabbit",  bg: "#C06BDB" },
-  hamster: { emoji: "🐹", label: "Hamster", bg: "#FFE033" },
-  cow:     { emoji: "🐄", label: "Cow",     bg: "#5BAEFF" },
-  lion:    { emoji: "🦁", label: "Lion",    bg: "#FF6B8A" },
+const ANIMAL_META: Record<string, { label: string; bg: string }> = {
+  cat: { label: "Cat", bg: "#FF6B8A" },
+  dog: { label: "Dog", bg: "#FF8C42" },
+  bird: { label: "Bird", bg: "#5BC8F5" },
+  frog: { label: "Frog", bg: "#B8E04A" },
+  rabbit: { label: "Rabbit", bg: "#C06BDB" },
+  hamster: { label: "Hamster", bg: "#FFE033" },
+  cow: { label: "Cow", bg: "#5BAEFF" },
+  lion: { label: "Lion", bg: "#FF6B8A" },
 };
 const ANIMAL_LIST = Object.keys(ANIMAL_META);
 
 export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null }) {
   const { profile, analyze, play, stopAll, isPlaying, isAnalyzing } = useDrawSound();
-  const [animal,     setAnimal]     = useState("cat");
+  const [animal, setAnimal] = useState("cat");
   const [moodResult, setMoodResult] = useState<MoodResult | null>(null);
-  const [recording,  setRecording]  = useState(false);
-  const [audioURL,   setAudioURL]   = useState<string | null>(null);
-  const [audioBlob,  setAudioBlob]  = useState<Blob | null>(null);
-  const [remixing,   setRemixing]   = useState(false);
-  const [remixURL,   setRemixURL]   = useState<string | null>(null);
-  const mediaRecRef  = useRef<MediaRecorder | null>(null);
-  const chunksRef    = useRef<BlobPart[]>([]);
+  const [recording, setRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [remixing, setRemixing] = useState(false);
+  const [remixURL, setRemixURL] = useState<string | null>(null);
+  const mediaRecRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
 
   const meta = ANIMAL_META[animal] ?? ANIMAL_META.cat;
 
@@ -68,17 +68,17 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
     setRemixing(true);
     try {
       play(drawingDataUrl);
-      const actx     = new AudioContext();
+      const actx = new AudioContext();
       const arrayBuf = await audioBlob.arrayBuffer();
-      const decoded  = await actx.decodeAudioData(arrayBuf);
-      const src      = actx.createBufferSource();
-      src.buffer     = decoded;
+      const decoded = await actx.decodeAudioData(arrayBuf);
+      const src = actx.createBufferSource();
+      src.buffer = decoded;
       src.detune.value = profile ? Math.max(-1200, Math.min(1200, Math.round(((profile.baseFreq - 440) / 440) * 100))) : 0;
-      src.loop       = true;
-      const gain     = actx.createGain();
+      src.loop = true;
+      const gain = actx.createGain();
       gain.gain.value = profile ? Math.min(profile.volume * 1.2, 1) : 0.8;
       if (profile?.echo) {
-        const conv  = actx.createConvolver();
+        const conv = actx.createConvolver();
         const irLen = actx.sampleRate * 1.5;
         const irBuf = actx.createBuffer(2, irLen, actx.sampleRate);
         for (let c = 0; c < 2; c++) {
@@ -91,9 +91,9 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
         src.connect(gain).connect(actx.destination);
       }
       src.start();
-      const dest   = actx.createMediaStreamDestination();
+      const dest = actx.createMediaStreamDestination();
       gain.connect(dest);
-      const mr2    = new MediaRecorder(dest.stream);
+      const mr2 = new MediaRecorder(dest.stream);
       const chunks2: BlobPart[] = [];
       mr2.ondataavailable = e => chunks2.push(e.data);
       const duration = (profile?.duration ?? 4) * 1000 + 2000;
@@ -115,20 +115,20 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
       {/* Top bar */}
       <div style={{ background: "#FFE033", borderBottom: "3px solid #1A1A1A", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px", flexShrink: 0, flexWrap: "wrap" }}>
         <div style={{ width: "48px", height: "48px", background: drawingDataUrl ? "transparent" : "#FFFBF2", border: "3px solid #1A1A1A", borderRadius: "12px", overflow: "hidden", flexShrink: 0, boxShadow: "3px 3px 0 #1A1A1A", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {drawingDataUrl ? <img src={drawingDataUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: "1.4rem" }}>🎨</span>}
+          {drawingDataUrl ? <img src={drawingDataUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: "0.75rem", color: "#555" }}>Doodle</span>}
         </div>
         {moodResult && (
           <div style={{ background: meta.bg, border: "3px solid #1A1A1A", borderRadius: "50px", padding: "6px 16px", boxShadow: "3px 3px 0 #1A1A1A", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.4rem" }}>{moodResult.emoji}</span>
+            <span style={{ fontSize: "0.95rem" }}>{moodResult.label}</span>
             <div>
               <div style={{ fontSize: "0.65rem", color: "#5A3A00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Your drawing says...</div>
-              <div style={{ fontSize: "1rem", color: "#1A1A1A" }}>{meta.emoji} {meta.label} feels <strong>{moodResult.label}</strong></div>
+              <div style={{ fontSize: "1rem", color: "#1A1A1A" }}>{meta.label} feels <strong>{moodResult.label}</strong></div>
             </div>
           </div>
         )}
         {recording && (
           <div style={{ background: "#FF6B8A", border: "3px solid #1A1A1A", borderRadius: "50px", padding: "4px 14px", boxShadow: "2px 2px 0 #1A1A1A", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span>🔴</span><span style={{ fontSize: "0.85rem" }}>Recording...</span>
+            <span style={{ fontSize: "0.85rem" }}>Recording...</span>
           </div>
         )}
       </div>
@@ -142,8 +142,7 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
             const m = ANIMAL_META[a]; const active = animal === a;
             return (
               <button key={a} onClick={() => setAnimal(a)} style={{ width: "78px", height: "68px", borderRadius: "14px", background: active ? m.bg : "#FFFBF2", border: active ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "2px", boxShadow: active ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: active ? "translate(2px,2px)" : "none", transition: "all 0.1s", fontFamily: "'Chewy',cursive" }}>
-                <span style={{ fontSize: "1.5rem" }}>{m.emoji}</span>
-                <span style={{ fontSize: "0.6rem", color: "#1A1A1A" }}>{m.label}</span>
+                <span style={{ fontSize: "0.7rem", color: "#1A1A1A" }}>{m.label}</span>
               </button>
             );
           })}
@@ -156,22 +155,22 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
           {moodResult ? (
             <div style={{ background: "#FFFBF2", border: "4px solid #1A1A1A", borderRadius: "20px", padding: "16px", boxShadow: "5px 5px 0 #1A1A1A", position: "relative" }}>
               <div style={{ position: "absolute", top: "-14px", left: "18px", background: meta.bg, border: "3px solid #1A1A1A", borderRadius: "50px", padding: "3px 14px", fontSize: "0.75rem", color: "#1A1A1A", boxShadow: "2px 2px 0 #1A1A1A" }}>
-                🎨 Generated from your drawing
+                Generated from your drawing
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px" }}>
                 <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: meta.bg, border: "3px solid #1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", boxShadow: "3px 3px 0 #1A1A1A", flexShrink: 0 }}>
-                  {moodResult.emoji}
+                  {moodResult.label}
                 </div>
                 <div>
                   <div style={{ fontSize: "0.7rem", color: "#5A3A00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Detected mood: <strong>{moodResult.label}</strong></div>
-                  <div style={{ fontSize: "1rem", color: "#1A1A1A", fontStyle: "italic", marginTop: "4px" }}>"{moodResult.phrase}"</div>
+                  <div style={{ fontSize: "1rem", color: "#1A1A1A", fontStyle: "italic", marginTop: "4px" }}">"{moodResult.phrase}"</div>
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ background: "#FFFBF2", border: "3px solid #1A1A1A", borderRadius: "16px", padding: "20px", boxShadow: "4px 4px 0 #1A1A1A", textAlign: "center" }}>
-              <div style={{ fontSize: "2rem" }}>{isAnalyzing ? "🔍" : "🎨"}</div>
-              <div style={{ fontSize: "0.95rem", marginTop: "8px", color: "#1A1A1A" }}>{isAnalyzing ? "Reading your drawing..." : "Draw something first — your pet needs a mood 👀"}</div>
+              
+              <div style={{ fontSize: "0.95rem", marginTop: "8px", color: "#1A1A1A" }}>{isAnalyzing ? "Reading your drawing..." : "Draw something first — your pet needs a mood"}</div>
             </div>
           )}
 
@@ -181,8 +180,7 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
             <button
               onClick={recording ? stopRecording : startRecording}
               style={{ width: "100%", padding: "18px", borderRadius: "16px", background: recording ? "#FF6B8A" : meta.bg, border: recording ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor: "pointer", fontFamily: "'Chewy',cursive", fontSize: "1.3rem", color: "#1A1A1A", boxShadow: recording ? "2px 2px 0 #1A1A1A" : "5px 5px 0 #1A1A1A", transform: recording ? "translate(2px,2px)" : "none", transition: "all 0.1s", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-              <span>{recording ? "⏹" : "🔴"}</span>
-              <span>{recording ? "Stop" : `Record ${meta.emoji} ${meta.label}`}</span>
+              <span>{recording ? "Stop" : `Record ${meta.label}`}</span>
             </button>
           </div>
 
@@ -202,23 +200,22 @@ export function VoiceMode({ drawingDataUrl }: { drawingDataUrl: string | null })
                 onClick={remixWithMelody}
                 disabled={remixing || !drawingDataUrl}
                 style={{ width: "100%", padding: "18px", borderRadius: "16px", background: remixing ? "#DDD" : "#C06BDB", border: "3px solid #1A1A1A", cursor: remixing || !drawingDataUrl ? "not-allowed" : "pointer", fontFamily: "'Chewy',cursive", fontSize: "1.2rem", color: "#1A1A1A", boxShadow: remixing ? "none" : "5px 5px 0 #1A1A1A", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-                <span>🎵</span>
                 <span>{remixing ? "Mixing..." : "Remix with my drawing!"}</span>
               </button>
-              {!drawingDataUrl && <div style={{ fontSize: "0.75rem", color: "#FF6B8A", textAlign: "center", marginTop: "8px" }}>⚠️ Draw something first to enable remix</div>}
+              {!drawingDataUrl && <div style={{ fontSize: "0.75rem", color: "#FF6B8A", textAlign: "center", marginTop: "8px" }}>Draw something first to enable remix</div>}
             </div>
           )}
 
           {/* STEP 4 — Download (appears after remix) */}
           {remixURL && (
             <div style={{ background: "#B8E04A", border: "4px solid #1A1A1A", borderRadius: "20px", padding: "20px", boxShadow: "5px 5px 0 #1A1A1A" }}>
-              <div style={{ fontSize: "0.7rem", color: "#1A1A1A", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>🎉 Your pet + your drawing</div>
+              <div style={{ fontSize: "0.7rem", color: "#1A1A1A", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>Your pet + your drawing</div>
               <audio controls src={remixURL} style={{ width: "100%", borderRadius: "8px", marginBottom: "12px" }} />
               <a
                 href={remixURL}
                 download={`${meta.label.toLowerCase()}-remix.webm`}
                 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px", borderRadius: "16px", background: "#FFFBF2", border: "3px solid #1A1A1A", fontFamily: "'Chewy',cursive", fontSize: "1.1rem", color: "#1A1A1A", boxShadow: "4px 4px 0 #1A1A1A", textDecoration: "none" }}>
-                <span>⬇️</span><span>Download remix</span>
+                <span>Download remix</span>
               </a>
             </div>
           )}

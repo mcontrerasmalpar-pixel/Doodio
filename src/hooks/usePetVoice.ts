@@ -14,25 +14,25 @@ export interface PetVoiceConfig {
 }
 
 export const PRESETS: Record<PetVoicePreset, Omit<PetVoiceConfig,"preset">> = {
-  cat:     { pitch: 2.0, rate: 1.1, pitchShift:  7, robotize: false, echo: false },
-  dog:     { pitch: 0.6, rate: 0.9, pitchShift: -3, robotize: false, echo: false },
-  bird:    { pitch: 3.8, rate: 1.4, pitchShift: 12, robotize: false, echo: true  },
-  frog:    { pitch: 0.4, rate: 0.7, pitchShift: -6, robotize: false, echo: false },
-  rabbit:  { pitch: 2.8, rate: 1.2, pitchShift:  5, robotize: false, echo: false },
-  hamster: { pitch: 3.5, rate: 1.5, pitchShift:  9, robotize: false, echo: false },
-  cow:     { pitch: 0.3, rate: 0.5, pitchShift: -8, robotize: false, echo: false },
-  lion:    { pitch: 0.2, rate: 0.6, pitchShift:-10, robotize: false, echo: false },
+  cat: { pitch: 2.0, rate: 1.1, pitchShift: 7, robotize: false, echo: false },
+  dog: { pitch: 0.6, rate: 0.9, pitchShift: -3, robotize: false, echo: false },
+  bird: { pitch: 3.8, rate: 1.4, pitchShift: 12, robotize: false, echo: true },
+  frog: { pitch: 0.4, rate: 0.7, pitchShift: -6, robotize: false, echo: false },
+  rabbit: { pitch: 2.8, rate: 1.2, pitchShift: 5, robotize: false, echo: false },
+  hamster: { pitch: 3.5, rate: 1.5, pitchShift: 9, robotize: false, echo: false },
+  cow: { pitch: 0.3, rate: 0.5, pitchShift: -8, robotize: false, echo: false },
+  lion: { pitch: 0.2, rate: 0.6, pitchShift:-10, robotize: false, echo: false },
 };
 
-export const PRESET_META: Record<PetVoicePreset,{emoji:string;label:string;bg:string;sound:string}> = {
-  cat:     { emoji: "🐱", label: "Gato",    bg: "#FF6B8A", sound: "miau miau miau" },
-  dog:     { emoji: "🐶", label: "Perro",   bg: "#FF8C42", sound: "guau guau guau" },
-  bird:    { emoji: "🐦", label: "Pájaro",  bg: "#5BC8F5", sound: "pío pío pío" },
-  frog:    { emoji: "🐸", label: "Rana",    bg: "#B8E04A", sound: "croc croc croc" },
-  rabbit:  { emoji: "🐇", label: "Conejo",  bg: "#FFE033", sound: "squeak squeak" },
-  hamster: { emoji: "🐹", label: "Hámster", bg: "#FF8C42", sound: "squeak squeak squeak" },
-  cow:     { emoji: "🐄", label: "Vaca",    bg: "#FFFBF2", sound: "muuu muuu" },
-  lion:    { emoji: "🦁", label: "León",    bg: "#FFE033", sound: "roaar roaar" },
+export const PRESET_META: Record<PetVoicePreset,{label:string;bg:string;sound:string}> = {
+  cat: { label: "Gato", bg: "#FF6B8A", sound: "miau miau miau" },
+  dog: { label: "Perro", bg: "#FF8C42", sound: "guau guau guau" },
+  bird: { label: "Pájaro", bg: "#5BC8F5", sound: "pío pío pío" },
+  frog: { label: "Rana", bg: "#B8E04A", sound: "croc croc croc" },
+  rabbit: { label: "Conejo", bg: "#FFE033", sound: "squeak squeak" },
+  hamster: { label: "Hámster", bg: "#FF8C42", sound: "squeak squeak squeak" },
+  cow: { label: "Vaca", bg: "#FFFBF2", sound: "muuu muuu" },
+  lion: { label: "León", bg: "#FFE033", sound: "roaar roaar" },
 };
 
 /** Synthesize an animal sound using Web Audio — no TTS needed */
@@ -177,31 +177,31 @@ function getVoicesAsync(): Promise<SpeechSynthesisVoice[]> {
 
 export function usePetVoice() {
   const [config, setConfig] = useState<PetVoiceConfig>({ preset:"cat", ...PRESETS["cat"] });
-  const [isSpeaking,  setIsSpeaking]  = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [transcript,  setTranscript]  = useState("");
-  const [error,       setError]       = useState<string|null>(null);
+  const [transcript, setTranscript] = useState("");
+  const [error, setError] = useState<string|null>(null);
   const recognRef = useRef<any>(null);
 
   useEffect(() => { if (window.speechSynthesis) getVoicesAsync(); }, []);
 
   const speak = useCallback(async (text: string) => {
     if (!text.trim()) return;
-    if (!window.speechSynthesis) { setError("Tu browser no soporta síntesis de voz 😢"); return; }
+    if (!window.speechSynthesis) { setError("Tu browser no soporta síntesis de voz"); return; }
     window.speechSynthesis.cancel();
     setError(null); setIsSpeaking(true);
     // Play animal sound first, then speak the text
     playAnimalSound(config.preset, 0.4);
     const utt = new SpeechSynthesisUtterance(text);
-    utt.pitch  = Math.min(Math.max(config.pitch, 0.1), 2);
-    utt.rate   = Math.min(Math.max(config.rate,  0.1), 10);
-    utt.lang   = "es-ES"; utt.volume = 0.9;
+    utt.pitch = Math.min(Math.max(config.pitch, 0.1), 2);
+    utt.rate = Math.min(Math.max(config.rate, 0.1), 10);
+    utt.lang = "es-ES"; utt.volume = 0.9;
     try {
       const voices = await getVoicesAsync();
       const esVoice = voices.find(v=>v.lang.startsWith("es"))??voices.find(v=>v.default)??voices[0];
       if (esVoice) utt.voice = esVoice;
     } catch { /* use default */ }
-    utt.onend   = () => setIsSpeaking(false);
+    utt.onend = () => setIsSpeaking(false);
     utt.onerror = (ev) => {
       setIsSpeaking(false);
       if ((ev as any).error !== "interrupted") setError(`Error al sintetizar voz (${(ev as any).error??"desconocido"})`);
@@ -216,9 +216,9 @@ export function usePetVoice() {
     if (!SR) { setError("Tu browser no soporta reconocimiento de voz. Usa Chrome."); return; }
     const recog = new SR();
     recog.lang="es-ES"; recog.interimResults=true; recog.continuous=false;
-    recog.onstart  = () => { setIsListening(true); setError(null); };
-    recog.onend    = () => setIsListening(false);
-    recog.onerror  = (e: any) => { setIsListening(false); setError(e.error==="not-allowed"?"Permite el micrófono 🎤":`Error mic: ${e.error}`); };
+    recog.onstart = () => { setIsListening(true); setError(null); };
+    recog.onend = () => setIsListening(false);
+    recog.onerror = (e: any) => { setIsListening(false); setError(e.error==="not-allowed"?"Permite el micrófono":`Error mic: ${e.error}`); };
     recog.onresult = (e: any) => {
       const t=Array.from(e.results as any[]).map((r:any)=>r[0].transcript).join("");
       setTranscript(t);
@@ -228,8 +228,8 @@ export function usePetVoice() {
   }, [speak]);
 
   const stopListening = useCallback(() => { recognRef.current?.stop(); setIsListening(false); }, []);
-  const applyPreset   = useCallback((preset: PetVoicePreset) => { setConfig({preset,...PRESETS[preset]}); }, []);
-  const updateConfig  = useCallback((patch: Partial<PetVoiceConfig>) => { setConfig(prev=>({...prev,...patch})); }, []);
+  const applyPreset = useCallback((preset: PetVoicePreset) => { setConfig({preset,...PRESETS[preset]}); }, []);
+  const updateConfig = useCallback((patch: Partial<PetVoiceConfig>) => { setConfig(prev=>({...prev,...patch})); }, []);
 
   return { config, updateConfig, applyPreset, speak, stopSpeaking, isSpeaking, startListening, stopListening, isListening, transcript, setTranscript, error };
 }

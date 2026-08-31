@@ -184,17 +184,14 @@ function Cloud({ x, y, scale = 1, delay = "0s" }: { x: string; y: string; scale?
 const FLOATS = [
   { ch:"♪", c:"#FF6B9D", x:"6%",  y:"7%",  s:"2rem",   a:"floatA 3.2s ease-in-out infinite",      stroke:"1.5px #1A1A1A" },
   { ch:"♩", c:"#FFE033", x:"84%", y:"6%",  s:"1.8rem",  a:"floatB 2.9s ease-in-out infinite",      stroke:"1.5px #1A1A1A" },
-  { ch:"🐾",c:"#FF8C42", x:"2%",  y:"34%", s:"1.5rem",  a:"floatC 3.6s ease-in-out infinite",      stroke:"0" },
   { ch:"✦", c:"#FFE033", x:"90%", y:"24%", s:"1.7rem",  a:"floatA 4s ease-in-out infinite",        stroke:"1.5px #1A1A1A" },
   { ch:"♫", c:"#B8E04A", x:"12%", y:"62%", s:"1.5rem",  a:"floatB 3.8s ease-in-out infinite",      stroke:"1.5px #1A1A1A" },
-  { ch:"🐾",c:"#FF6B9D", x:"83%", y:"55%", s:"1.5rem",  a:"floatC 3.3s 0.4s ease-in-out infinite", stroke:"0" },
   { ch:"✦", c:"#FFE033", x:"4%",  y:"76%", s:"1.4rem",  a:"floatA 2.7s ease-in-out infinite",      stroke:"1.5px #1A1A1A" },
   { ch:"♪", c:"#4FC3F7", x:"88%", y:"72%", s:"1.6rem",  a:"floatB 3.7s 1s ease-in-out infinite",   stroke:"1.5px #1A1A1A" },
   { ch:"★", c:"#FFE033", x:"22%", y:"5%",  s:"1.3rem",  a:"floatC 4.2s ease-in-out infinite",      stroke:"1px #1A1A1A" },
   { ch:"★", c:"#FF6B9D", x:"72%", y:"11%", s:"1.2rem",  a:"floatA 3.1s 0.7s ease-in-out infinite", stroke:"1px #1A1A1A" },
   { ch:"♩", c:"#B8E04A", x:"9%",  y:"19%", s:"1.4rem",  a:"floatB 3.5s ease-in-out infinite",      stroke:"1.5px #1A1A1A" },
   { ch:"✦", c:"#AB47BC", x:"80%", y:"42%", s:"1.3rem",  a:"floatC 3.2s 0.3s ease-in-out infinite", stroke:"1.5px #1A1A1A" },
-  { ch:"🐾",c:"#4FC3F7", x:"17%", y:"80%", s:"1.3rem",  a:"floatA 3.4s 0.6s ease-in-out infinite", stroke:"0" },
   { ch:"♪", c:"#FF8C42", x:"75%", y:"82%", s:"1.2rem",  a:"floatB 4s 0.2s ease-in-out infinite",   stroke:"1px #1A1A1A" },
   { ch:"★", c:"#B8E04A", x:"50%", y:"4%",  s:"1.1rem",  a:"floatC 3s 1.2s ease-in-out infinite",   stroke:"1px #1A1A1A" },
 ];
@@ -405,7 +402,7 @@ export function TomodachiLogin({ onLogin, onFirstTime }: {
               animation: loading ? "btnBounce 0.5s ease-in-out infinite" : "none",
             }}
           >
-            {loading ? "Loading… 🎵" : "Let's Go! 🐾"}
+            {loading ? "Loading…" : "Let's Go!"}
           </button>
 
           {/* First time link */}
