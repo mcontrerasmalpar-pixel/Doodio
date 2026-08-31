@@ -5,11 +5,11 @@ export interface MelodyNote {
 }
 
 const SCALES: Record<string, number[]> = {
-  major:      [0,2,4,5,7,9,11,12],
-  minor:      [0,2,3,5,7,8,10,12],
+  major: [0,2,4,5,7,9,11,12],
+  minor: [0,2,3,5,7,8,10,12],
   pentatonic: [0,2,4,7,9,12,14,16],
-  blues:      [0,3,5,6,7,10,12,15],
-  dorian:     [0,2,3,5,7,9,10,12],
+  blues: [0,3,5,6,7,10,12,15],
+  dorian: [0,2,3,5,7,9,10,12],
 };
 const ROOTS: Record<string,number> = { C:261.63,D:293.66,E:329.63,F:349.23,G:392.00,A:440.00,B:493.88 };
 const ROOT_NAMES = Object.keys(ROOTS);
@@ -112,7 +112,7 @@ type InstrumentId = "piano"|"guitar"|"marimba"|"flute"|"bells"|"synthpad";
 
 // --- Genre remix types & data ---
 interface GenreDef {
-  id: string; label: string; emoji: string;
+  id: string; label: string;
   color: string; textColor: string;
   oscType: OscillatorType;
   filterHz: number; reverbMix: number;
@@ -121,27 +121,27 @@ interface GenreDef {
 }
 
 const GENRES: GenreDef[] = [
-  { id:"none",   label:"Original", emoji:"🎨", color:"#FFFBF2", textColor:"#1A1A1A",
-    oscType:"sine",     filterHz:4000, reverbMix:0.20,
-    durMult:1.0,  gapMult:1.0,  volMult:1.0,  distortion:false, distAmount:0,   pitchShift:0 },
-  { id:"jazz",   label:"Jazz",    emoji:"🎷", color:"#FF8C42", textColor:"#FFF",
-    oscType:"sine",     filterHz:2200, reverbMix:0.40,
-    durMult:1.2,  gapMult:1.3,  volMult:0.8,  distortion:false, distAmount:0,   pitchShift:-5 },
-  { id:"rock",   label:"Rock",    emoji:"🎸", color:"#FF4444", textColor:"#FFF",
+  { id:"none", label:"Original", color:"#FFFBF2", textColor:"#1A1A1A",
+    oscType:"sine", filterHz:4000, reverbMix:0.20,
+    durMult:1.0, gapMult:1.0, volMult:1.0, distortion:false, distAmount:0, pitchShift:0 },
+  { id:"jazz", label:"Jazz", color:"#FF8C42", textColor:"#FFF",
+    oscType:"sine", filterHz:2200, reverbMix:0.40,
+    durMult:1.2, gapMult:1.3, volMult:0.8, distortion:false, distAmount:0, pitchShift:-5 },
+  { id:"rock", label:"Rock", color:"#FF4444", textColor:"#FFF",
     oscType:"sawtooth", filterHz:3500, reverbMix:0.15,
-    durMult:0.8,  gapMult:0.6,  volMult:1.1,  distortion:true,  distAmount:150, pitchShift:0 },
-  { id:"ballad", label:"Ballad",  emoji:"🎻", color:"#5BC8F5", textColor:"#1A1A1A",
-    oscType:"sine",     filterHz:1400, reverbMix:0.60,
-    durMult:1.8,  gapMult:1.5,  volMult:0.75, distortion:false, distAmount:0,   pitchShift:5 },
-  { id:"pop",    label:"Pop",     emoji:"🎤", color:"#FF6BE8", textColor:"#FFF",
+    durMult:0.8, gapMult:0.6, volMult:1.1, distortion:true, distAmount:150, pitchShift:0 },
+  { id:"ballad", label:"Ballad", color:"#5BC8F5", textColor:"#1A1A1A",
+    oscType:"sine", filterHz:1400, reverbMix:0.60,
+    durMult:1.8, gapMult:1.5, volMult:0.75, distortion:false, distAmount:0, pitchShift:5 },
+  { id:"pop", label:"Pop", color:"#FF6BE8", textColor:"#FFF",
     oscType:"triangle", filterHz:4000, reverbMix:0.28,
-    durMult:1.0,  gapMult:0.9,  volMult:0.9,  distortion:false, distAmount:0,   pitchShift:0 },
-  { id:"funk",   label:"Funk",    emoji:"🎺", color:"#1A1A2E", textColor:"#FFE033",
-    oscType:"square",   filterHz:1800, reverbMix:0.22,
-    durMult:0.6,  gapMult:0.8,  volMult:1.0,  distortion:false, distAmount:0,   pitchShift:7 },
-  { id:"metal",  label:"Metal",   emoji:"🤘", color:"#777",   textColor:"#FFF",
+    durMult:1.0, gapMult:0.9, volMult:0.9, distortion:false, distAmount:0, pitchShift:0 },
+  { id:"funk", label:"Funk", color:"#1A1A2E", textColor:"#FFE033",
+    oscType:"square", filterHz:1800, reverbMix:0.22,
+    durMult:0.6, gapMult:0.8, volMult:1.0, distortion:false, distAmount:0, pitchShift:7 },
+  { id:"metal", label:"Metal", color:"#777", textColor:"#FFF",
     oscType:"sawtooth", filterHz:5000, reverbMix:0.08,
-    durMult:0.5,  gapMult:0.3,  volMult:1.2,  distortion:true,  distAmount:400, pitchShift:-12 },
+    durMult:0.5, gapMult:0.3, volMult:1.2, distortion:true, distAmount:400, pitchShift:-12 },
 ];
 
 function semShift(freq: number, semitones: number) {
@@ -154,8 +154,8 @@ function playNote(freq: number, vol: number, dur: number, inst: InstrumentId, st
 
   // Apply genre pitch shift
   const finalFreq = genre && genre.id !== "none" ? semShift(freq, genre.pitchShift) : freq;
-  const finalDur  = genre && genre.id !== "none" ? dur * genre.durMult : dur;
-  const finalVol  = genre && genre.id !== "none" ? Math.min(vol * genre.volMult, 1.0) : vol;
+  const finalDur = genre && genre.id !== "none" ? dur * genre.durMult : dur;
+  const finalVol = genre && genre.id !== "none" ? Math.min(vol * genre.volMult, 1.0) : vol;
   const oscType: OscillatorType = genre && genre.id !== "none" ? genre.oscType : "sine";
 
   // Reverb setup
@@ -257,13 +257,13 @@ function playNote(freq: number, vol: number, dur: number, inst: InstrumentId, st
   gain.connect(revDry); gain.connect(conv);
 }
 
-const INSTRUMENTS: {id:InstrumentId;label:string;emoji:string;bg:string}[] = [
-  {id:"piano",    label:"Piano",   emoji:"🎹", bg:"#FF6B8A"},
-  {id:"guitar",   label:"Guitar",  emoji:"🎸", bg:"#FFE033"},
-  {id:"marimba",  label:"Marimba", emoji:"🎵", bg:"#B8E04A"},
-  {id:"flute",    label:"Flute",   emoji:"🪈", bg:"#5BC8F5"},
-  {id:"bells",    label:"Bells",   emoji:"🔔", bg:"#FFE033"},
-  {id:"synthpad", label:"Synth",   emoji:"🌟", bg:"#C06BDB"},
+const INSTRUMENTS: {id:InstrumentId;label:string;bg:string}[] = [
+  {id:"piano", label:"Piano", bg:"#FF6B8A"},
+  {id:"guitar", label:"Guitar", bg:"#FFE033"},
+  {id:"marimba", label:"Marimba", bg:"#B8E04A"},
+  {id:"flute", label:"Flute", bg:"#5BC8F5"},
+  {id:"bells", label:"Bells", bg:"#FFE033"},
+  {id:"synthpad", label:"Synth", bg:"#C06BDB"},
 ];
 
 const NOTE_COLORS = ["#FF6B8A","#FF8C42","#FFE033","#B8E04A","#5BC8F5","#5BAEFF","#C06BDB","#5FD49A"];
@@ -295,10 +295,10 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
 }) {
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [remixing,  setRemixing]  = useState(false);
-  const [remixURL,  setRemixURL]  = useState<string | null>(null);
+  const [remixing, setRemixing] = useState(false);
+  const [remixURL, setRemixURL] = useState<string | null>(null);
   const mediaRecRef = useRef<MediaRecorder | null>(null);
-  const chunksRef   = useRef<BlobPart[]>([]);
+  const chunksRef = useRef<BlobPart[]>([]);
 
   const startRecording = async () => {
     try {
@@ -344,7 +344,7 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
       }
       const melodyDuration = (t - ctx.currentTime) * 1000 + 300;
       const arrayBuf = await audioBlob.arrayBuffer();
-      const decoded  = await ctx.decodeAudioData(arrayBuf);
+      const decoded = await ctx.decodeAudioData(arrayBuf);
       const voiceSrc = ctx.createBufferSource();
       voiceSrc.buffer = decoded; voiceSrc.loop = true;
       const voiceGain = ctx.createGain(); voiceGain.gain.value = 0.75;
@@ -369,7 +369,6 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
         <button
           onClick={recording ? stopRecording : startRecording}
           style={{ flex:1, padding:"8px 12px", borderRadius:"50px", background: recording ? "#FF6B8A" : "#FFFBF2", border: recording ? "3px solid #1A1A1A" : "2px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow: recording ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: recording ? "translate(1px,1px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}>
-          <span style={{ fontSize:"0.75rem" }}>{recording ? "⏹" : "🔴"}</span>
           <span>{recording ? "Stop" : "Record your voice"}</span>
         </button>
         {audioBlob && !recording && (
@@ -377,7 +376,6 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
             onClick={remixWithMelody}
             disabled={remixing || !melody.length}
             style={{ flex:1, padding:"8px 12px", borderRadius:"50px", background: remixing ? "#DDD" : "#C06BDB", border:"2px solid #1A1A1A", cursor: remixing || !melody.length ? "not-allowed" : "pointer", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow: remixing ? "none" : "3px 3px 0 #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", gap:"6px" }}>
-            <span style={{ fontSize:"0.75rem" }}>🎵</span>
             <span>{remixing ? "Mixing..." : "Remix with drawing"}</span>
           </button>
         )}
@@ -386,7 +384,7 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
         <div style={{ background:"#B8E04A", border:"2px solid #1A1A1A", borderRadius:"12px", padding:"8px 12px", boxShadow:"3px 3px 0 #1A1A1A", display:"flex", alignItems:"center", gap:"8px" }}>
           <audio controls src={remixURL} style={{ flex:1, height:"28px" }} />
           <a href={remixURL} download="doodle-remix.webm" style={{ display:"flex", alignItems:"center", gap:"4px", padding:"6px 10px", borderRadius:"50px", background:"#FFFBF2", border:"2px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.8rem", color:"#1A1A1A", boxShadow:"2px 2px 0 #1A1A1A", textDecoration:"none", flexShrink:0 }}>
-            <span>⬇️</span><span>Save</span>
+            <span>Save</span>
           </a>
         </div>
       )}
@@ -396,32 +394,32 @@ function DoodleRecorder({ melody, instId, tempo, activeGenre }: {
 
 // PlayMode
 interface PlayModeProps {
-  drawingDataUrl:       string | null;
-  onMelodyReady?:       (notes: MelodyNote[]) => void;
-  onPlayingChange?:     (playing: boolean) => void;
+  drawingDataUrl: string | null;
+  onMelodyReady?: (notes: MelodyNote[]) => void;
+  onPlayingChange?: (playing: boolean) => void;
   externalPlayTrigger?: number;
-  onSavePet?:           () => void;
-  savedPet?:            {name: string} | null;
-  onStopRef?:           React.MutableRefObject<(() => void) | null>;
+  onSavePet?: () => void;
+  savedPet?: {name: string} | null;
+  onStopRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalPlayTrigger,onSavePet,savedPet,onStopRef}: PlayModeProps) {
-  const [melody,      setMelody]      = useState<MelodyNote[]>([]);
-  const [isPlaying,   setIsPlaying]   = useState(false);
-  const [activeStep,  setActiveStep]  = useState(-1);
+  const [melody, setMelody] = useState<MelodyNote[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeStep, setActiveStep] = useState(-1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeInst,  setActiveInst]  = useState(0);
-  const [tempo,       setTempo]       = useState(120);
-  const [loop,        setLoop]        = useState(true);
+  const [activeInst, setActiveInst] = useState(0);
+  const [tempo, setTempo] = useState(120);
+  const [loop, setLoop] = useState(true);
   const [activeGenre, setActiveGenre] = useState<GenreDef>(GENRES[0]);
 
-  const stopRef    = useRef(false);
+  const stopRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const instIdRef  = useRef<InstrumentId>(INSTRUMENTS[0].id);
-  const tempoRef   = useRef(120);
-  const loopRef    = useRef(true);
-  const melodyRef  = useRef<MelodyNote[]>([]);
-  const genreRef   = useRef<GenreDef>(GENRES[0]);
+  const instIdRef = useRef<InstrumentId>(INSTRUMENTS[0].id);
+  const tempoRef = useRef(120);
+  const loopRef = useRef(true);
+  const melodyRef = useRef<MelodyNote[]>([]);
+  const genreRef = useRef<GenreDef>(GENRES[0]);
 
   useEffect(() => { instIdRef.current = INSTRUMENTS[activeInst].id; }, [activeInst]);
   useEffect(() => { tempoRef.current = tempo; }, [tempo]);
@@ -510,12 +508,12 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
       {/* Top bar — instruments */}
       <div style={{background:"#5BC8F5", borderBottom:"3px solid #1A1A1A", padding:"10px 16px", display:"flex", alignItems:"center", gap:"12px", flexShrink:0, flexWrap:"wrap"}}>
         <div style={{width:"60px", height:"60px", background:"#FFFBF2", border:"3px solid #1A1A1A", borderRadius:"14px", overflow:"hidden", flexShrink:0, boxShadow:"3px 3px 0 #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center"}}>
-          {drawingDataUrl ? <img src={drawingDataUrl} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <span style={{fontSize:"1.6rem"}}>🎨</span>}
+          {drawingDataUrl ? <img src={drawingDataUrl} style={{width:"100%",height:"100%",objectFit:"cover"}}/> : <span style={{fontSize:"0.85rem",color:"#555"}}>Doodle</span>}
         </div>
         <div style={{display:"flex", flexDirection:"column", gap:"2px", flexShrink:0}}>
-          <span style={{fontSize:"0.85rem", color:"#1A1A1A"}}>🎵 Generated melody</span>
+          <span style={{fontSize:"0.85rem", color:"#1A1A1A"}}>Generated melody</span>
           {isAnalyzing
-            ? <span style={{fontSize:"0.7rem", color:"#555"}}>⏳ Analyzing drawing...</span>
+            ? <span style={{fontSize:"0.7rem", color:"#555"}}>Analyzing drawing...</span>
             : <span style={{fontSize:"0.7rem", color:"#555"}}>{melody.filter(n=>!n.rest).length} notes · {activeGenre.id !== "none" ? activeGenre.label + " style" : "original scale"}</span>}
         </div>
         <div style={{display:"flex", gap:"6px", flexWrap:"wrap", flex:1, justifyContent:"center"}}>
@@ -523,7 +521,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
             const active = activeInst===i;
             return (
               <button key={ins.id} onClick={()=>handleInstChange(i)} style={{padding:"6px 14px", borderRadius:"50px", background: active ? ins.bg : "#FFFBF2", border: active ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow: active ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: active ? "translate(1px,1px)" : "none", transition:"all 0.1s", display:"flex", alignItems:"center", gap:"4px"}}>
-                <span>{ins.emoji}</span><span>{ins.label}</span>
+                <span>{ins.label}</span>
               </button>
             );
           })}
@@ -532,7 +530,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
 
       {/* Genre remix pills */}
       <div style={{background:"#4AB8E8", borderBottom:"3px solid #1A1A1A", padding:"8px 14px", flexShrink:0}}>
-        <div style={{fontSize:"0.72rem", color:"#1A1A1A", marginBottom:5, textAlign:"center", opacity:0.8}}>🎶 Remix your drawing in a genre</div>
+        <div style={{fontSize:"0.72rem", color:"#1A1A1A", marginBottom:5, textAlign:"center", opacity:0.8}}>Remix your drawing in a genre</div>
         <div style={{display:"flex", gap:"6px", flexWrap:"wrap", justifyContent:"center"}}>
           {GENRES.map(g => {
             const active = activeGenre.id === g.id;
@@ -551,7 +549,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
                   display:"flex", alignItems:"center", gap:4,
                   WebkitTapHighlightColor:"transparent",
                 }}>
-                <span>{g.emoji}</span><span>{g.label}</span>
+                <span>{g.label}</span>
               </button>
             );
           })}
@@ -563,14 +561,14 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
         <div style={{flex:1, background:"rgba(0,0,0,0.15)", border:"3px solid #1A1A1A", borderRadius:"16px", padding:"12px", boxShadow:"4px 4px 0 #1A1A1A", overflow:"hidden"}}>
           {isAnalyzing ? (
             <div style={{height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:"10px"}}>
-              <span style={{fontSize:"2.5rem"}}>🔍</span>
+              
               <span style={{fontSize:"1rem", color:"#FFFBF2", fontFamily:"'Chewy',cursive"}}>Analyzing your drawing...</span>
             </div>
           ) : melody.length>0 ? (
             <MelodyGrid notes={melody} activeStep={activeStep}/>
           ) : (
             <div style={{height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}>
-              <span style={{color:"#FFFBF2", fontFamily:"'Chewy',cursive"}}>Go to Draw first 🎨</span>
+              <span style={{color:"#FFFBF2", fontFamily:"'Chewy',cursive"}}>Go to Draw first</span>
             </div>
           )}
         </div>
@@ -587,7 +585,7 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
           style={{width:"56px", height:"56px", borderRadius:"50%", background: isPlaying ? "#FF6B8A" : "#B8E04A", border:"3px solid #1A1A1A", cursor: melody.length ? "pointer" : "not-allowed", fontSize:"1.6rem", boxShadow:"4px 4px 0 #1A1A1A", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.1s"}}
           onMouseDown={e=>{e.currentTarget.style.transform="translate(2px,2px)";e.currentTarget.style.boxShadow="2px 2px 0 #1A1A1A";}}
           onMouseUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="4px 4px 0 #1A1A1A";}}>
-          {isPlaying ? "⏹" : "▶️"}
+          {isPlaying ? "Stop" : "Play"}
         </button>
         <div style={{display:"flex", alignItems:"center", gap:"10px", flex:1, minWidth:"160px"}}>
           <span style={{fontSize:"0.9rem", color:"#1A1A1A", flexShrink:0}}>Tempo</span>
@@ -597,17 +595,17 @@ export function PlayMode({drawingDataUrl,onMelodyReady,onPlayingChange,externalP
           <span style={{background: activeGenre.id !== "none" ? activeGenre.color : inst.bg, border:"2px solid #1A1A1A", borderRadius:"50px", padding:"2px 12px", fontSize:"0.9rem", color: activeGenre.id !== "none" ? activeGenre.textColor : "#1A1A1A", minWidth:"50px", textAlign:"center", flexShrink:0}}>{tempo}</span>
         </div>
         <button onClick={()=>setLoop(l=>!l)} style={{padding:"8px 14px", borderRadius:"50px", background: loop ? (activeGenre.id !== "none" ? activeGenre.color : inst.bg) : "#FFFBF2", border: loop ? "4px solid #1A1A1A" : "3px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color: loop && activeGenre.id !== "none" ? activeGenre.textColor : "#1A1A1A", boxShadow: loop ? "2px 2px 0 #1A1A1A" : "3px 3px 0 #1A1A1A", transform: loop ? "translate(1px,1px)" : "none", display:"flex", alignItems:"center", gap:"5px"}}>
-          <span>🔁</span><span>Loop {loop ? "ON" : "OFF"}</span>
+          <span>Loop {loop ? "ON" : "OFF"}</span>
         </button>
         {onSavePet && !savedPet && melody.length>0 && (
           <button onClick={onSavePet} style={{padding:"10px 20px", borderRadius:"50px", background:"#FF8C42", border:"4px solid #1A1A1A", cursor:"pointer", fontFamily:"'Chewy',cursive", fontSize:"0.95rem", color:"#1A1A1A", boxShadow:"4px 4px 0 #1A1A1A", display:"flex", alignItems:"center", gap:"6px"}}
             onMouseDown={e=>{e.currentTarget.style.transform="translate(2px,2px)";e.currentTarget.style.boxShadow="2px 2px 0 #1A1A1A";}}
             onMouseUp={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="4px 4px 0 #1A1A1A";}}>
-            <span>💾</span><span>Save doodle</span>
+            <span>Save doodle</span>
           </button>
         )}
         {savedPet && (
-          <div style={{padding:"8px 16px", borderRadius:"50px", background:"#B8E04A", border:"3px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow:"3px 3px 0 #1A1A1A"}}>✅ {savedPet.name} saved</div>
+          <div style={{padding:"8px 16px", borderRadius:"50px", background:"#B8E04A", border:"3px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.9rem", color:"#1A1A1A", boxShadow:"3px 3px 0 #1A1A1A"}}>{savedPet.name} saved</div>
         )}
       </div>
     </div>
