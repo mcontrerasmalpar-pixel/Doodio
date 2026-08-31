@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import type { MelodyNote } from "./PlayMode";
 
 interface GenreDef {
-  id: string; label: string; emoji: string;
+  id: string; label: string;
   color: string; textColor: string;
   oscType: OscillatorType;
   filterHz: number; reverbMix: number;
@@ -15,24 +15,24 @@ interface GenreDef {
 }
 
 const GENRES: GenreDef[] = [
-  { id:"rock",   label:"Rock",   emoji:"🎸", color:"#FF4444", textColor:"#FFF",
+  { id:"rock", label:"Rock", color:"#FF4444", textColor:"#FFF",
     oscType:"sawtooth", filterHz:3500, reverbMix:0.15,
-    durMult:0.8,  gapMult:0.6,  volMult:1.1, distortion:true,  distAmount:150, pitchShift:0 },
-  { id:"jazz",   label:"Jazz",   emoji:"🎷", color:"#FF8C42", textColor:"#FFF",
-    oscType:"sine",     filterHz:2200, reverbMix:0.40,
-    durMult:1.2,  gapMult:1.3,  volMult:0.8, distortion:false, distAmount:0,   pitchShift:-5 },
-  { id:"metal",  label:"Metal",  emoji:"🤘", color:"#777",   textColor:"#FFF",
+    durMult:0.8, gapMult:0.6, volMult:1.1, distortion:true, distAmount:150, pitchShift:0 },
+  { id:"jazz", label:"Jazz", color:"#FF8C42", textColor:"#FFF",
+    oscType:"sine", filterHz:2200, reverbMix:0.40,
+    durMult:1.2, gapMult:1.3, volMult:0.8, distortion:false, distAmount:0, pitchShift:-5 },
+  { id:"metal", label:"Metal", color:"#777", textColor:"#FFF",
     oscType:"sawtooth", filterHz:5000, reverbMix:0.08,
-    durMult:0.5,  gapMult:0.3,  volMult:1.2, distortion:true,  distAmount:400, pitchShift:-12 },
-  { id:"pop",    label:"Pop",    emoji:"🎤", color:"#FF6BE8", textColor:"#FFF",
+    durMult:0.5, gapMult:0.3, volMult:1.2, distortion:true, distAmount:400, pitchShift:-12 },
+  { id:"pop", label:"Pop", color:"#FF6BE8", textColor:"#FFF",
     oscType:"triangle", filterHz:4000, reverbMix:0.28,
-    durMult:1.0,  gapMult:0.9,  volMult:0.9, distortion:false, distAmount:0,   pitchShift:0 },
-  { id:"funk",   label:"Funk",   emoji:"🎺", color:"#1A1A2E", textColor:"#FFE033",
-    oscType:"square",   filterHz:1800, reverbMix:0.22,
-    durMult:0.6,  gapMult:0.8,  volMult:1.0, distortion:false, distAmount:0,   pitchShift:7 },
-  { id:"ballad", label:"Ballad", emoji:"🎻", color:"#5BC8F5", textColor:"#1A1A1A",
-    oscType:"sine",     filterHz:1400, reverbMix:0.60,
-    durMult:1.8,  gapMult:1.5,  volMult:0.75,distortion:false, distAmount:0,   pitchShift:5 },
+    durMult:1.0, gapMult:0.9, volMult:0.9, distortion:false, distAmount:0, pitchShift:0 },
+  { id:"funk", label:"Funk", color:"#1A1A2E", textColor:"#FFE033",
+    oscType:"square", filterHz:1800, reverbMix:0.22,
+    durMult:0.6, gapMult:0.8, volMult:1.0, distortion:false, distAmount:0, pitchShift:7 },
+  { id:"ballad", label:"Ballad", color:"#5BC8F5", textColor:"#1A1A1A",
+    oscType:"sine", filterHz:1400, reverbMix:0.60,
+    durMult:1.8, gapMult:1.5, volMult:0.75,distortion:false, distAmount:0, pitchShift:5 },
 ];
 
 function semShift(freq: number, semitones: number) {
@@ -84,9 +84,9 @@ async function renderBackingTrack(
     ni++;
 
     const freq = semShift(note.freq, genre.pitchShift);
-    const dur  = Math.min(note.duration * genre.durMult, durationSec - t + 0.05);
-    const gap  = note.duration * 0.15 * genre.gapMult;
-    const vol  = Math.min(note.volume * genre.volMult, 1.0);
+    const dur = Math.min(note.duration * genre.durMult, durationSec - t + 0.05);
+    const gap = note.duration * 0.15 * genre.gapMult;
+    const vol = Math.min(note.volume * genre.volMult, 1.0);
 
     if (freq < 30 || freq > 8000 || dur <= 0) { t += 0.1; continue; }
 
@@ -128,11 +128,11 @@ async function renderBackingTrack(
 
 function audioBufferToWav(buffer: AudioBuffer): Blob {
   const numCh = buffer.numberOfChannels;
-  const sr    = buffer.sampleRate;
-  const len   = buffer.length * numCh * 2;
-  const ab    = new ArrayBuffer(44 + len);
-  const v     = new DataView(ab);
-  const ws    = (o: number, s: string) => { for (let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+  const sr = buffer.sampleRate;
+  const len = buffer.length * numCh * 2;
+  const ab = new ArrayBuffer(44 + len);
+  const v = new DataView(ab);
+  const ws = (o: number, s: string) => { for (let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
   ws(0,"RIFF"); v.setUint32(4,36+len,true); ws(8,"WAVE"); ws(12,"fmt ");
   v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,numCh,true);
   v.setUint32(24,sr,true); v.setUint32(28,sr*numCh*2,true);
@@ -168,24 +168,24 @@ interface Props { melody: MelodyNote[]; }
 
 export function ExperimentMode({ melody }: Props) {
   const [selectedGenre, setSelectedGenre] = useState<GenreDef>(GENRES[0]);
-  const [recording,     setRecording]     = useState(false);
-  const [mixing,        setMixing]        = useState(false);
-  const [remixURL,      setRemixURL]      = useState<string|null>(null);
-  const [recSeconds,    setRecSeconds]    = useState(0);
-  const [error,         setError]         = useState<string|null>(null);
+  const [recording, setRecording] = useState(false);
+  const [mixing, setMixing] = useState(false);
+  const [remixURL, setRemixURL] = useState<string|null>(null);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const [error, setError] = useState<string|null>(null);
 
-  const mediaRecRef   = useRef<MediaRecorder|null>(null);
-  const chunksRef     = useRef<BlobPart[]>([]);
-  const timerRef      = useRef<ReturnType<typeof setInterval>|null>(null);
-  const streamRef     = useRef<MediaStream|null>(null);
-  const liveCtxRef    = useRef<AudioContext|null>(null);
-  const liveOscRef    = useRef<OscillatorNode[]>([]);
-  const recDurRef     = useRef<number>(0);
-  const micBlobRef    = useRef<Blob|null>(null);
+  const mediaRecRef = useRef<MediaRecorder|null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval>|null>(null);
+  const streamRef = useRef<MediaStream|null>(null);
+  const liveCtxRef = useRef<AudioContext|null>(null);
+  const liveOscRef = useRef<OscillatorNode[]>([]);
+  const recDurRef = useRef<number>(0);
+  const micBlobRef = useRef<Blob|null>(null);
   const genreAtRecRef = useRef<GenreDef>(GENRES[0]);
 
   const melodyNotes = melody.filter(n => !n.rest);
-  const hasDrawing  = melodyNotes.length > 0;
+  const hasDrawing = melodyNotes.length > 0;
 
   function startLivePreview(genre: GenreDef) {
     try {
@@ -207,8 +207,8 @@ export function ExperimentMode({ melody }: Props) {
       while (t - ctx.currentTime < 62) {
         const note = notes[ni % notes.length]; ni++;
         const freq = semShift(note.freq, genre.pitchShift);
-        const dur  = note.duration * genre.durMult;
-        const gap  = note.duration * 0.15 * genre.gapMult;
+        const dur = note.duration * genre.durMult;
+        const gap = note.duration * 0.15 * genre.gapMult;
         if (freq < 30 || freq > 8000) { t += 0.1; continue; }
 
         const osc = ctx.createOscillator(); osc.type=genre.oscType; osc.frequency.value=freq;
@@ -304,14 +304,14 @@ export function ExperimentMode({ melody }: Props) {
       {/* No drawing warning */}
       {!hasDrawing && (
         <div style={{ margin:"12px 16px 0", background:"#FFE033", border:"2px solid #1A1A1A", borderRadius:10, padding:"7px 12px", fontSize:"0.75rem", color:"#1A1A1A", textAlign:"center", boxShadow:"2px 2px 0 #1A1A1A" }}>
-          ⚠️ Go to <strong>Draw</strong> first — your drawing becomes the melody of your remix!
+          Go to <strong>Draw</strong> first — your drawing becomes the melody of your remix!
         </div>
       )}
 
       {/* Genre pills */}
       <div style={{ flexShrink:0, padding:"12px 14px 0" }}>
         <div style={{ fontSize:"0.75rem", color:"#1A1A1A", marginBottom:6, textAlign:"center" }}>
-          🎶 Your drawing remixed in this style:
+          Your drawing remixed in this style:
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:7, justifyContent:"center" }}>
           {GENRES.map(g => {
@@ -333,7 +333,7 @@ export function ExperimentMode({ melody }: Props) {
                   WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
                   transition:"transform 0.08s",
                 }}>
-                <span>{g.emoji}</span><span>{g.label}</span>
+                <span>{g.label}</span>
               </button>
             );
           })}
@@ -347,13 +347,13 @@ export function ExperimentMode({ melody }: Props) {
           borderRadius:16, padding:"12px 18px",
           boxShadow:"4px 4px 0 #1A1A1A", textAlign:"center", maxWidth:300,
         }}>
-          <div style={{fontSize:"1.8rem",marginBottom:3}}>{selectedGenre.emoji}</div>
+          
           <div style={{fontSize:"1rem",color:"#1A1A1A",marginBottom:4}}>{selectedGenre.label}</div>
           <div style={{fontSize:"0.72rem",color:"#555",lineHeight:1.5}}>
             {mixing
-              ? "⏳ Mixing your drawing's melody with your voice..."
+              ? "Mixing your drawing's melody with your voice..."
               : recording
-              ? `🎵 Your drawing plays in ${selectedGenre.label} style! Tap Stop when done.`
+              ? `Your drawing plays in ${selectedGenre.label} style! Tap Stop when done.`
               : hasDrawing
               ? `Your drawing's unique melody → remixed in ${selectedGenre.label} → mixed with your voice!`
               : "Draw something first, then come back to remix it!"
@@ -378,7 +378,6 @@ export function ExperimentMode({ melody }: Props) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
           }}>
-          <span>{mixing ? "⏳" : recording ? "⏹" : "🔴"}</span>
           <span>{mixing ? "Mixing..." : recording ? `Stop (${recSeconds}s)` : `Record with ${selectedGenre.label}!`}</span>
         </button>
 
@@ -387,7 +386,7 @@ export function ExperimentMode({ melody }: Props) {
             <audio controls src={remixURL} style={{ flex:1, height:"32px" }} />
             <a href={remixURL} download={`remix-${selectedGenre.id}.wav`}
               style={{ display:"flex", alignItems:"center", gap:4, padding:"6px 12px", borderRadius:"50px", background:"#B8E04A", border:"2px solid #1A1A1A", fontFamily:"'Chewy',cursive", fontSize:"0.85rem", color:"#1A1A1A", boxShadow:"2px 2px 0 #1A1A1A", textDecoration:"none", flexShrink:0 }}>
-              ⬇️ Save
+              Save
             </a>
           </div>
         )}
